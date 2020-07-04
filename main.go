@@ -10,13 +10,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rohenaz/bap-planaria-go/bap"
-	"github.com/rohenaz/bap-planaria-go/bmap"
-	"github.com/rohenaz/bap-planaria-go/bob"
-	"github.com/rohenaz/bap-planaria-go/database"
-	"github.com/rohenaz/bap-planaria-go/state"
+	"github.com/rohenaz/go-bap"
+	"github.com/rohenaz/go-bmap"
+	"github.com/rohenaz/go-bob"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"github.com/tonicpow/bap-planaria-go/database"
+	"github.com/tonicpow/bap-planaria-go/state"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
