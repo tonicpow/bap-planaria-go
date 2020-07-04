@@ -1,4 +1,4 @@
-module github.com/rohenaz/bap-planaria-go
+module github.com/tonicpow/bap-planaria-go
 
 go 1.14
 
