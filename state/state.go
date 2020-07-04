@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/rohenaz/bap-planaria-go/bap"
-	"github.com/rohenaz/bap-planaria-go/database"
+	"github.com/rohenaz/go-bap"
+	"github.com/tonicpow/bap-planaria-go/database"
 )
 
 // Build starts the state builder
