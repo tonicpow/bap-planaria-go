@@ -1,5 +1,3 @@
-testing bitbus based indexing of BAP txs and building active state collection (mongo backend)
-
 ## BAP Transaction Indexer & State Machine
 
 A Planaria-like indexer and transaction processor. Uses Bitbus to ingest all Bitcoin Attestation Protocol transactions. Once sync is complete it replays history to create a state collection that can then be queried.
