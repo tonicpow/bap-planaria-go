@@ -92,7 +92,7 @@ func crawl(query []byte, height int) {
 			bsonData["MAP"] = bmapData.MAP
 		}
 
-		collectionName := "MAP" // bmapData.BAP.Type
+		collectionName := bmapData.BAP.Type
 		// Write to DB
 		_, err = conn.InsertOne(collectionName, bsonData)
 		// log.Println("Inserted")
