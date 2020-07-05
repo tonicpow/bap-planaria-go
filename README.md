@@ -11,7 +11,9 @@ A Planaria-like indexer and transaction processor. Uses Bitbus to ingest all Bit
   - [BAP](https://github.com/rohenaz/go-bap) - Bitcoin Attestation Protocol library
   - [MAP](https://github.com/rohenaz/go-map) - Magic Attribute Protocol library
 
-## Environmental Variables
+## Installation
+
+Set the required environmental variables:
 
 BAP_MONGO_URL
 
@@ -22,8 +24,14 @@ PLANARIA_TOKEN
 
     A token from https://token.planaria.network
 
-## Usage
+## Start indexer
 
 ```
 go run main.go
+```
+
+## Start web server
+
+```
+todo
 ```
