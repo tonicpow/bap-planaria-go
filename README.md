@@ -17,6 +17,12 @@ BAP_MONGO_URL
     A valid mongodb connection string.
     Example: "mongodb://localhost:27017/bap"
 
+PLANARIA_TOKEN
+
+    A valid planaria token
+
+Get one [here](https://token.planaria.network/)
+
 ## Usage
 
 ```

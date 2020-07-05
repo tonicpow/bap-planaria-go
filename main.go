@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/rohenaz/go-bmap"
@@ -31,7 +32,7 @@ func crawl(query []byte, height int) {
 	bjson := []byte(njson)
 	req, err := http.NewRequest("POST", "https://bob.bitbus.network/block", bytes.NewBuffer(bjson))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("token", "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxNGozTGNMQlJoZU1aOHBRWnh3UEw3a013Y2NXYWZQSnNiIiwiaXNzdWVyIjoiZ2VuZXJpYy1iaXRhdXRoIn0.SUpqeTdRMEtEbGVlRlRHZkc1d1BwTDlzY2NaRjk5eG93ZHU5S09CaGEzQTNRMEpBd2t2RVc2eTJwd0Y3RjBua0MwYXROZ3ZjNjRmVnViMVpaKzdmRDNZPQ")
+	req.Header.Set("token", os.Getenv("PLANARIA_TOKEN"))
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
