@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -36,8 +37,11 @@ func crawl(query []byte, height int) {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	conn, err := database.Connect(ctx)
 	if err != nil {
+		log.Println(err)
 		return
 	}
+	fmt.Printf("current block? %d", currentBlock)
+
 	defer conn.Disconnect(ctx)
 	reader := bufio.NewReader(resp.Body)
 	// Split NDJSON stream by line
@@ -92,7 +96,6 @@ func main() {
       "sort": { "blk.i": 1 }
     }
   }`)
-	fmt.Printf("current block? %d", currentBlock)
 	crawl(q, currentBlock)
 
 	state.Build()

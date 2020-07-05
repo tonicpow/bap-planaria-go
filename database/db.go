@@ -23,6 +23,9 @@ type Connection struct {
 // Connect establishes a connection to the mongo db
 func Connect(ctx context.Context) (*Connection, error) {
 	bapMongoURL := os.Getenv("BAP_MONGO_URL")
+	if len(bapMongoURL) == 0 {
+		return nil, fmt.Errorf("Set BAP_MONGAO_URL before running %s", bapMongoURL)
+	}
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(bapMongoURL))
 	if err != nil {
 		fmt.Println("Failed", err)
