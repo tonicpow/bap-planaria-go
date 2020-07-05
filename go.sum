@@ -48,8 +48,6 @@ github.com/konsorten/go-windows-terminal-sequences v1.0.2/go.mod h1:T0+1ngSBFLxv
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/libsv/libsv v0.0.7 h1:Z+3FE6uFUHXzQ+6tWpwpIL2cePgB5Xg7z5+3gvXEKvw=
-github.com/libsv/libsv v0.0.7/go.mod h1:IUOhAO9FR5AC3oPIaP4tTnkQQZ5qEVPAZaMorHph278=
 github.com/libsv/libsv v0.0.8 h1:ak+AjZ4kyewSXvpJFPIUZ3UWe7VaeD5ooGFhY1xp5u8=
 github.com/libsv/libsv v0.0.8/go.mod h1:IUOhAO9FR5AC3oPIaP4tTnkQQZ5qEVPAZaMorHph278=
 github.com/markbates/oncer v0.0.0-20181203154359-bf2de49a0be2/go.mod h1:Ld9puTsIW75CHf65OeIOkyKbteujpZVXDpWK6YGZbxE=
@@ -64,6 +62,16 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/rogpeppe/go-internal v1.1.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.2.2/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
+github.com/rohenaz/go-aip v0.0.0-20200704191331-93b9f6de350a h1:xegzrrrWzU7XVcJfNf1iU0YbQGo3yx81MIwQ3DCW7n8=
+github.com/rohenaz/go-aip v0.0.0-20200704191331-93b9f6de350a/go.mod h1:fJb1D7fg5eSmr/jsUC988WvdITYUnrqmmuSt5bWfWnY=
+github.com/rohenaz/go-bap v0.0.0-20200704193743-334c0b7685a6 h1:LCLWh6PQileYP44zqMNrwZ/hzWXkcVMbhpgaAnlG+V4=
+github.com/rohenaz/go-bap v0.0.0-20200704193743-334c0b7685a6/go.mod h1:odXjioXnaKvOC5gROx86LIl5QjdCftrc2JjdHIEiIv0=
+github.com/rohenaz/go-bmap v0.0.0-20200705131959-c374fc44b852 h1:Z5v0LNA+tfspuI6fwzfGM0HtkIHdxnuN4x7ifWrgSfA=
+github.com/rohenaz/go-bmap v0.0.0-20200705131959-c374fc44b852/go.mod h1:dnVMZj33TiVXRsFDfcPF4s/PpcOf9+hofP/9mdrylnM=
+github.com/rohenaz/go-bob v0.0.0-20200704190822-4b02dd80ee80 h1:lxaVlf9j6iTQ+nYA67ph7B7H/id/uJ6RIXe9F549zKE=
+github.com/rohenaz/go-bob v0.0.0-20200704190822-4b02dd80ee80/go.mod h1:YEjUooBSmI0F5qcDnyms7/xe8TdYZNcQrdQhOJ16fvY=
+github.com/rohenaz/go-map v0.0.0-20200705132236-bda646e63041 h1:Kk7taX3zb5b2h9bOJQQn3Vkkb3948FlcAzVVW0mllmI=
+github.com/rohenaz/go-map v0.0.0-20200705132236-bda646e63041/go.mod h1:sd/N7nSBxK+qkw5xHENQgSCyZArxG8sGyWZjS0EqwPk=
 github.com/sirupsen/logrus v1.4.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
@@ -95,6 +103,8 @@ golang.org/x/crypto v0.0.0-20190422162423-af44ce270edf/go.mod h1:WFFai1msRO1wXaE
 golang.org/x/crypto v0.0.0-20190530122614-20be4c3c3ed5/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20200406173513-056763e48d71 h1:DOmugCavvUtnUD114C1Wh+UgTgQZ4pMLzXxi1pSt+/Y=
 golang.org/x/crypto v0.0.0-20200406173513-056763e48d71/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
+golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 h1:psW17arqaxU48Z5kZ0CQnkZWQJsqcURM6tKiBApRjXI=
+golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/net v0.0.0-20190311183353-d8887717615a/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
