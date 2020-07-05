@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rohenaz/go-bap"
 	"github.com/rohenaz/go-bmap"
 	"github.com/rohenaz/go-bob"
+	mapp "github.com/rohenaz/go-map"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/tonicpow/bap-planaria-go/database"
@@ -64,20 +64,36 @@ func crawl(query []byte, height int) {
 			return
 		}
 
+		log.Printf("bob %+v", bobData)
+
 		// Transform from BOB to BMAP
 		bmapData := bmap.New()
 		bmapData.FromBob(bobData)
 
+		log.Printf("bmap %+v", bmapData)
+
+		bsonData := bson.M{
+			"tx":  bobData.Tx,
+			"in":  bobData.In,
+			"out": bobData.Out,
+			"blk": bobData.Blk,
+		}
+
+		if bmapData.AIP != nil {
+			bsonData["AIP"] = bmapData.AIP
+		}
+
+		if bmapData.BAP != nil {
+			bsonData["BAP"] = bmapData.BAP
+		}
+
+		if bmapData.MAP != nil {
+			bsonData["MAP"] = bmapData.MAP
+		}
+
+		collectionName := "MAP" // bmapData.BAP.Type
 		// Write to DB
-		_, err = conn.InsertOne(bmapData.BAP.Type,
-			bson.M{
-				"tx":  bobData.Tx,
-				"in":  bobData.In,
-				"out": bobData.Out,
-				"blk": bobData.Blk,
-				"BAP": bmapData.BAP,
-				"MAP": bmapData.MAP,
-			})
+		_, err = conn.InsertOne(collectionName, bsonData)
 		// log.Println("Inserted")
 	}
 
@@ -92,7 +108,7 @@ func main() {
 	q := []byte(`
   {
     "q": {
-      "find": { "out.tape.cell.s": "` + bap.BapPrefix + `" },
+      "find": { "out.tape.cell.s": "` + mapp.MapPrefix + `" },
       "sort": { "blk.i": 1 }
     }
   }`)
