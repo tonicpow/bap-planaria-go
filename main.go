@@ -12,9 +12,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/rohenaz/go-bap"
 	"github.com/rohenaz/go-bmap"
 	"github.com/rohenaz/go-bob"
-	mapp "github.com/rohenaz/go-map"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/tonicpow/bap-planaria-go/database"
@@ -109,7 +109,7 @@ func main() {
 	q := []byte(`
   {
     "q": {
-      "find": { "out.tape.cell.s": "` + mapp.Prefix + `" },
+      "find": { "out.tape.cell.s": "` + bap.Prefix + `" },
       "sort": { "blk.i": 1 }
     }
   }`)
