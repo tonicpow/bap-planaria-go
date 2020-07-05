@@ -108,7 +108,7 @@ func main() {
 	q := []byte(`
   {
     "q": {
-      "find": { "out.tape.cell.s": "` + mapp.MapPrefix + `" },
+      "find": { "out.tape.cell.s": "` + mapp.Prefix + `" },
       "sort": { "blk.i": 1 }
     }
   }`)
