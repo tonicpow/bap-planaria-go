@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/rohenaz/go-bmap"
+	"github.com/tonicpow/bap-planaria-go/identity"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -35,7 +37,26 @@ func Connect(ctx context.Context) (*Connection, error) {
 	return &Connection{client}, nil
 }
 
+// GetIdentityState gets a single document for a state collection
+func (c *Connection) GetIdentityState(idKey string) (*bmap.Tx, error) {
+	collection := c.Database(databaseName).Collection("identityState")
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	document := collection.FindOne(ctx, bson.D{
+		primitive.E{Key: "IDKey", Value: idKey},
+	}, &options.FindOneOptions{})
+
+	// To decode into a bmap.Tx
+	idState := identity.Sate{}
+	err := document.Decode(&idState)
+	if err != nil {
+		return nil, err
+	}
+
+	return &idState, nil
+}
+
 // GetDocs gets a number of documents for a given collection
+// TODO: Supply query like above
 func (c *Connection) GetDocs(collectionName string, limit int64, skip int64) ([]bmap.Tx, error) {
 	collection := c.Database(databaseName).Collection(collectionName)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
