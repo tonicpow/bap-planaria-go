@@ -8,6 +8,8 @@ import (
 	"github.com/rohenaz/go-bap"
 	"github.com/rohenaz/go-bmap"
 	"github.com/tonicpow/bap-planaria-go/database"
+	"github.com/tonicpow/bap-planaria-go/identity"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Attestation struct {
@@ -70,19 +72,29 @@ func Build() {
 
 		if validateIdTx(idTx) {
 			// Check if ID key exists
-			bmapTx, err := conn.GetIdentityState(idTx.BAP.IDKey)
-			if err != nil {
-				log.Println("Error:", err)
-				return
+			idState, _ := conn.GetIdentityState(idTx.BAP.IDKey)
+
+			if idState != nil {
+
+				log.Printf("Yo %+v", idState)
+
+				// ok, hard part...
+				// update identity history
+				// - validate if this is a valid chain of signatures
+				// - when a key is replaced it is signed with the previous address/key
+
+			} else {
+				// Insert a new identity state document
+				conn.InsertOne("identityState", bson.M{
+					"IDControlAddress": idTx.AIP.Address,
+					"IDKey":            idTx.BAP.IDKey,
+					"IDHistory": &identity.Identity{
+						Address:   idTx.BAP.Address,
+						FirstSeen: idTx.Blk.I,
+						LastSeen:  0,
+					},
+				})
 			}
-
-			log.Printf("Yo %+v", bmapTx)
-
-			// if bmapTx {
-
-			// } else {
-			// }
-
 		}
 
 	}

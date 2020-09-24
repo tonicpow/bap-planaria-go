@@ -9,6 +9,7 @@ type Identity struct {
 
 // State is the state object represending an identity key
 type State struct {
-	IDKey     string     `json:"idKey"`
-	IDHistory []Identity `json:"idHistory"`
+	IDControlAddress string     `json:"idControlAddress"`
+	IDKey            string     `json:"idKey"`
+	IDHistory        []Identity `json:"idHistory"`
 }

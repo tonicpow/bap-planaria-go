@@ -110,6 +110,8 @@ github.com/rohenaz/go-bmap v0.0.3 h1:1jfkmB3jhnRAU1FrLEmlZQXSeCkqgVTtxeuZvboq4/0
 github.com/rohenaz/go-bmap v0.0.3/go.mod h1:qbx6RYWI1cIA7enDboeKYu7UBCwDV75MOYjd9/02e8c=
 github.com/rohenaz/go-bmap v0.0.4 h1:HQTOyQPdlnM2LHiGwUkR0IFyC3N1LNbuP997PbEnWTg=
 github.com/rohenaz/go-bmap v0.0.4/go.mod h1:xk6esKOQIW69FE03PAcZSNrSN/bvo6n9oXXCeOwy0Zw=
+github.com/rohenaz/go-bmap v0.0.5 h1:jnzYD4sjHaRSTBUrzMoJA19gfmCIrJJEUGV6SQyoRD4=
+github.com/rohenaz/go-bmap v0.0.5/go.mod h1:xk6esKOQIW69FE03PAcZSNrSN/bvo6n9oXXCeOwy0Zw=
 github.com/rohenaz/go-bob v0.0.0-20200704190822-4b02dd80ee80 h1:lxaVlf9j6iTQ+nYA67ph7B7H/id/uJ6RIXe9F549zKE=
 github.com/rohenaz/go-bob v0.0.0-20200704190822-4b02dd80ee80/go.mod h1:YEjUooBSmI0F5qcDnyms7/xe8TdYZNcQrdQhOJ16fvY=
 github.com/rohenaz/go-bob v0.0.0-20200711220921-847f9f004275 h1:Q0OlBg3YM9JhIgXY+r2LZY67r1Hr7gfwnU6dLvS4mIM=

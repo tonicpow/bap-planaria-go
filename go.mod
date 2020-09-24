@@ -7,7 +7,7 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/klauspost/compress v1.11.0 // indirect
 	github.com/rohenaz/go-bap v0.0.4
-	github.com/rohenaz/go-bmap v0.0.4
+	github.com/rohenaz/go-bmap v0.0.5
 	github.com/rohenaz/go-bob v0.0.0-20200711220921-847f9f004275
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/tidwall/gjson v1.6.1

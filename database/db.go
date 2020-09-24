@@ -38,7 +38,7 @@ func Connect(ctx context.Context) (*Connection, error) {
 }
 
 // GetIdentityState gets a single document for a state collection
-func (c *Connection) GetIdentityState(idKey string) (*bmap.Tx, error) {
+func (c *Connection) GetIdentityState(idKey string) (*identity.State, error) {
 	collection := c.Database(databaseName).Collection("identityState")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	document := collection.FindOne(ctx, bson.D{
@@ -46,7 +46,7 @@ func (c *Connection) GetIdentityState(idKey string) (*bmap.Tx, error) {
 	}, &options.FindOneOptions{})
 
 	// To decode into a bmap.Tx
-	idState := identity.Sate{}
+	idState := identity.State{}
 	err := document.Decode(&idState)
 	if err != nil {
 		return nil, err
