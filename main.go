@@ -34,6 +34,10 @@ func crawl(query []byte, height int) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("token", os.Getenv("PLANARIA_TOKEN"))
 	resp, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	defer resp.Body.Close()
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	conn, err := database.Connect(ctx)
@@ -65,13 +69,9 @@ func crawl(query []byte, height int) {
 			return
 		}
 
-		log.Printf("bob %+v", bobData)
-
 		// Transform from BOB to BMAP
 		bmapData := bmap.New()
 		bmapData.FromBob(bobData)
-
-		log.Printf("bmap %+v", bmapData)
 
 		bsonData := bson.M{
 			"tx":  bobData.Tx,
