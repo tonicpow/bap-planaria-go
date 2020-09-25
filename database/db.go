@@ -10,7 +10,6 @@ import (
 	"github.com/rohenaz/go-bmap"
 	"github.com/tonicpow/bap-planaria-go/identity"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -41,9 +40,9 @@ func Connect(ctx context.Context) (*Connection, error) {
 func (c *Connection) GetIdentityState(idKey string) (*identity.State, error) {
 	collection := c.Database(databaseName).Collection("identityState")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	document := collection.FindOne(ctx, bson.D{
-		primitive.E{Key: "IDKey", Value: idKey},
-	}, &options.FindOneOptions{})
+	filter := bson.M{"IDKey": bson.M{"$eq": idKey}}
+	opts := options.FindOne()
+	document := collection.FindOne(ctx, filter, opts)
 
 	// To decode into a bmap.Tx
 	idState := identity.State{}
@@ -96,6 +95,23 @@ func (c *Connection) InsertOne(collectionName string, data bson.M) (interface{},
 	}
 
 	return res.InsertedID, nil
+}
+
+// UpsertOne connects and updates the provided data into the provided collection given the filter
+func (c *Connection) UpsertOne(collectionName string, filter interface{}, data bson.M) (interface{}, error) {
+
+	collection := c.Database(databaseName).Collection(collectionName)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	opts := options.Update().SetUpsert(true)
+
+	update := bson.M{"$set": data}
+
+	res, err := collection.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.UpsertedID, nil
 }
 
 // CountCollectionDocs returns the number of records in a given colletion

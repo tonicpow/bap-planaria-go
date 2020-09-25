@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/rohenaz/go-bap"
+	"github.com/rohenaz/go-bitcoin"
 	"github.com/rohenaz/go-bmap"
 	"github.com/tonicpow/bap-planaria-go/database"
 	"github.com/tonicpow/bap-planaria-go/identity"
@@ -39,13 +40,13 @@ type Attestation struct {
 //   attestationHash: 9b7d5b90c2aca598f2990bb06dc2e5dfd6db21c138d96b3a32dba25d4f75ef1c
 // }
 
-func validateIdTx(idTx bmap.Tx) (valid bool) {
+func validateIDTx(idTx bmap.Tx) (valid bool) {
+
+	// Make sure BAP Address is a valid Bitcoin address
+	addressValid, _ := bitcoin.ValidA58([]byte(idTx.BAP.Address))
+
 	// Make sude Id Key is a valid length
-	return len(idTx.BAP.IDKey) == 64 && idTx.AIP.Validate()
-
-	// TODO: Makle sure idTx.BAP.Address is a valid address
-
-	// See if this ID key is already in the state
+	return len(idTx.BAP.IDKey) == 64 && idTx.AIP.Validate() && addressValid
 }
 
 // Build starts the state builder
@@ -70,33 +71,37 @@ func Build() {
 
 	for _, idTx := range bmapIdTxs {
 
-		if validateIdTx(idTx) {
+		if validateIDTx(idTx) {
 			// Check if ID key exists
-			idState, _ := conn.GetIdentityState(idTx.BAP.IDKey)
+			idState, err := conn.GetIdentityState(idTx.BAP.IDKey)
+			if err != nil {
+				log.Println("Error", err)
+			}
+			// If found
+			if idState != nil && idState.IDKey == idTx.BAP.IDKey {
 
-			if idState != nil {
-
-				log.Printf("Yo %+v", idState)
+				log.Printf("ToDo %+v", idState)
 
 				// ok, hard part...
 				// update identity history
 				// - validate if this is a valid chain of signatures
 				// - when a key is replaced it is signed with the previous address/key
 
-			} else {
-				// Insert a new identity state document
-				conn.InsertOne("identityState", bson.M{
-					"IDControlAddress": idTx.AIP.Address,
-					"IDKey":            idTx.BAP.IDKey,
-					"IDHistory": &identity.Identity{
-						Address:   idTx.BAP.Address,
-						FirstSeen: idTx.Blk.I,
-						LastSeen:  0,
-					},
-				})
 			}
-		}
 
+			// Upsert as identity state document
+			filter := bson.M{"IDKey": bson.M{"$eq": idTx.BAP.IDKey}}
+			conn.UpsertOne("identityState", filter, bson.M{
+				"IDControlAddress": idTx.AIP.Address,
+				"IDKey":            idTx.BAP.IDKey,
+				"IDHistory": []identity.Identity{{
+					Address:   idTx.BAP.Address,
+					FirstSeen: idTx.Blk.I,
+					LastSeen:  0,
+				}},
+			})
+
+		}
 	}
 
 	// Find number of passes - should get this from state not raw
@@ -106,16 +111,16 @@ func Build() {
 	}
 
 	for i := 0; i < (int(numIdentities)/numPerPass)+1; i++ {
-		log.Println("Page", i)
+		// log.Println("Page", i)
 		skip := i * numPerPass
-		bmapTxs, err := conn.GetDocs(string(bap.ATTEST), int64(numPerPass), int64(skip))
+		attestationTxs, err := conn.GetDocs(string(bap.ATTEST), int64(numPerPass), int64(skip))
 		if err != nil {
 			log.Println("Error:", err)
 			return
 		}
 
 		// var identities []Identity
-		for _, tx := range bmapTxs {
+		for _, tx := range attestationTxs {
 			// log.Printf("Got Doc! %+v %s", tx.BAP, identities)
 			if tx.AIP.Validate() {
 
@@ -126,7 +131,7 @@ func Build() {
 
 				switch tx.BAP.Type {
 				case bap.ATTEST:
-					log.Printf("Attestation! Attestor: %s Hash: %s", tx.AIP.Address, tx.BAP.URNHash)
+					// log.Printf("Attestation! Attestor: %s Hash: %s", tx.AIP.Address, tx.BAP.URNHash)
 					break
 				case bap.REVOKE:
 					log.Println("Revocation")
