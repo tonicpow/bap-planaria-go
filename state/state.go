@@ -46,7 +46,8 @@ type Attestation struct {
 //   attestationHash: 9b7d5b90c2aca598f2990bb06dc2e5dfd6db21c138d96b3a32dba25d4f75ef1c
 // }
 
-func saveProgress(height uint32) {
+// SaveProgress persists the block height to ./block.tmp
+func SaveProgress(height uint32) {
 	// persist our progress to disk
 	if err := persist.Save("./block.tmp", height); err != nil {
 		log.Fatalln(err)
@@ -63,7 +64,7 @@ func validateIDTx(idTx bmap.Tx) (valid bool) {
 }
 
 // Build starts the state builder
-func Build(currentBlock int) {
+func Build(fromBlock int, trust bool) {
 
 	var numPerPass int = 100
 	// Query x records at a time in a loop
@@ -76,13 +77,14 @@ func Build(currentBlock int) {
 	defer conn.Disconnect(ctx)
 
 	// Clear old state
-	if currentBlock == 0 {
+	if fromBlock == 0 {
 		log.Println("Clearing state")
 		conn.ClearState()
 	}
 
+	// TODO: This is fixed ingsting only 1000 ids
 	// Make Identity State first
-	bmapIdTxs, err := conn.GetDocs(string(bap.ID), 1000, 0, bson.M{"blk.i": bson.M{"$gt": currentBlock}})
+	bmapIdTxs, err := conn.GetDocs(string(bap.ID), 1000, 0, bson.M{"blk.i": bson.M{"$gt": fromBlock}})
 	if err != nil {
 		log.Println("Error: 2", err)
 		return
@@ -99,19 +101,21 @@ func Build(currentBlock int) {
 			if numTxs != 0 {
 				// We already have this one
 				log.Println("This tx is already in the state", idTx.Tx.H)
-				saveProgress(idTx.Blk.I)
+				SaveProgress(idTx.Blk.I)
 				continue
 			}
 
-			// make sure the tx exists in the blockchain
-			foundInBlock, err := verifyExistence(idTx.Tx.H)
-			if err != nil || foundInBlock == 0 {
-				// This tx does not exist in the blockchain!
-				fmt.Println("Either this tx does not exist on the blockchain, or there was an error checking!", err, idTx.Tx.H)
-				continue
-			} else {
-				pct := idx * 100 / len(bmapIdTxs)
-				fmt.Printf("Mempool confirms %s in block %d %d\n", idTx.Tx.H, foundInBlock, pct)
+			if !trust {
+				// make sure the tx exists in the blockchain
+				foundInBlock, err := verifyExistence(idTx.Tx.H)
+				if err != nil || foundInBlock == 0 {
+					// This tx does not exist in the blockchain!
+					fmt.Println("Either this tx does not exist on the blockchain, or there was an error checking!", err, idTx.Tx.H)
+					continue
+				} else {
+					pct := idx * 100 / len(bmapIdTxs)
+					fmt.Printf("Mempool confirms %s in block %d %d\n", idTx.Tx.H, foundInBlock, pct)
+				}
 			}
 
 			// Check if ID key exists
@@ -166,7 +170,7 @@ func Build(currentBlock int) {
 			conn.UpsertOne("identityState", filter, updatedIdentity)
 
 			// persist our progress to disk
-			saveProgress(idTx.Blk.I)
+			SaveProgress(idTx.Blk.I)
 		}
 	}
 
@@ -200,8 +204,6 @@ func Build(currentBlock int) {
 
 				firstSeen := int(idState.IDHistory[0].FirstSeen)
 				lastSeen := int(idState.IDHistory[0].LastSeen)
-
-				// log.Printf("Last seen %d currentBlock %d", lastSeen, tx.Blk.I)
 
 				// 2. TODO: Check that current block is between the firstSeen and lastSeen?
 				if int(tx.Blk.I) > firstSeen && int(tx.Blk.I) > lastSeen {

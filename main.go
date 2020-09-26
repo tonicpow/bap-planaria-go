@@ -180,6 +180,8 @@ func main() {
 	    "sort": { "blk.i": 1 }
 	  }
 	}`)
+
+	// crawl will mutate currentBlock as it crawls forward from the given block height
 	crawl(q, currentBlock)
 
 	// matter.getBlockHeaders()
@@ -189,8 +191,11 @@ func main() {
 
 	then = time.Now()
 
+	// if we've indexed some new txs to bring into the state
 	if currentBlock > stateBlock {
-		state.Build(stateBlock)
+
+		// set tru to trust planaria, false to verify every tx with a miner
+		state.Build(stateBlock, true)
 		diff = time.Now().Sub(then).Seconds()
 		fmt.Printf("State sync complete in %fs\n", diff)
 	} else {
@@ -204,7 +209,7 @@ func main() {
 
 	// update the state block clounter
 	stateBlock = currentBlock
-
+	state.SaveProgress(uint32(stateBlock))
 	time.Sleep(30 * time.Second)
 	main()
 }

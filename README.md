@@ -34,6 +34,21 @@ go run main.go
 
 A `./block.tmp` file is created containing the latest synchronized block height. If this is set to 0 or any initial block height the sync will begin from this point.
 
+## Clear everything and start over
+
+Delete `./block.tmp`, (or set to the block height you want to sync from) and drop the bap db.
+
+## Trust mode
+
+Toggle this on to trust the data coming from Bitbus. This makes sync extremely fast. Individual txs can be validated later.
+
+Toggle this off to contact a miner for each tx that gets ingested into the state to make sure it is in fact in a Bitcoin block.
+
+```go
+// Build starts the state builder, starting from the given block
+func Build(fromBlock int, trust bool) {
+```
+
 ## Start web server
 
 ```
