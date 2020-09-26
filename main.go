@@ -20,6 +20,7 @@ import (
 	"github.com/rohenaz/go-bob"
 	"github.com/tidwall/sjson"
 	"github.com/tonicpow/bap-planaria-go/database"
+	"github.com/tonicpow/bap-planaria-go/persist"
 	"github.com/tonicpow/bap-planaria-go/state"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -239,6 +240,13 @@ func getBlock(blockhash string) (err error, block *bsvutil.Block) {
 
 func main() {
 
+	// load persisted block to continue from
+	if err := persist.Load("./block.tmp", &currentBlock); err != nil {
+		log.Println("Cant load it for some reason", err)
+	}
+
+	log.Println("Fine!", currentBlock)
+
 	then := time.Now()
 	q := []byte(`
 	{
@@ -258,12 +266,14 @@ func main() {
 
 	if currentBlock > stateBlock {
 		state.Build(stateBlock)
+		diff = time.Now().Sub(then).Seconds()
+		fmt.Printf("State sync complete in %fs\n", diff)
 	}
 
 	stateBlock = currentBlock
-
-	diff = time.Now().Sub(then).Seconds()
-	fmt.Printf("State sync complete in %fs\n", diff)
+	if err := persist.Save("./block.tmp", currentBlock); err != nil {
+		log.Fatalln(err)
+	}
 
 	time.Sleep(30 * time.Second)
 	main()

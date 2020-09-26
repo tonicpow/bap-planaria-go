@@ -164,12 +164,12 @@ func Build(currentBlock int) {
 				}
 
 				firstSeen := int(idState.IDHistory[0].FirstSeen)
-				// lastSeen := int(idState.IDHistory[0].LastSeen)
+				lastSeen := int(idState.IDHistory[0].LastSeen)
 
 				// log.Printf("Last seen %d currentBlock %d", lastSeen, tx.Blk.I)
 
-				// 2. TODO: Check that current block is between the firstSeen and lastSeen
-				if int(tx.Blk.I) > firstSeen {
+				// 2. TODO: Check that current block is between the firstSeen and lastSeen?
+				if int(tx.Blk.I) > firstSeen && int(tx.Blk.I) > lastSeen {
 					// log.Println("Valid ID state!", idState)
 
 					conn.UpsertOne("attestationState", bson.M{"Tx.h": tx.Tx.H}, bson.M{
@@ -209,6 +209,3 @@ func Build(currentBlock int) {
 		}
 	}
 }
-
-// query
-// - lookup the id of the org related to each attestation
