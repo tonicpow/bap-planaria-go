@@ -185,7 +185,7 @@ func main() {
 	// matter.getBlockHeaders()
 
 	diff := time.Now().Sub(then).Seconds()
-	fmt.Printf("Bitbus sync complete in %fs\nBlock height: %d\n", diff, currentBlock)
+	fmt.Printf("Bitbus sync complete in %fs\nBlock height: %d\nSync height: %d\n", diff, currentBlock, stateBlock)
 
 	then = time.Now()
 

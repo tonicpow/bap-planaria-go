@@ -46,6 +46,13 @@ type Attestation struct {
 //   attestationHash: 9b7d5b90c2aca598f2990bb06dc2e5dfd6db21c138d96b3a32dba25d4f75ef1c
 // }
 
+func saveProgress(height uint32) {
+	// persist our progress to disk
+	if err := persist.Save("./block.tmp", height); err != nil {
+		log.Fatalln(err)
+	}
+}
+
 func validateIDTx(idTx bmap.Tx) (valid bool) {
 
 	// Make sure BAP Address is a valid Bitcoin address
@@ -81,7 +88,7 @@ func Build(currentBlock int) {
 		return
 	}
 
-	for _, idTx := range bmapIdTxs {
+	for idx, idTx := range bmapIdTxs {
 
 		if validateIDTx(idTx) {
 
@@ -92,17 +99,19 @@ func Build(currentBlock int) {
 			if numTxs != 0 {
 				// We already have this one
 				log.Println("This tx is already in the state", idTx.Tx.H)
+				saveProgress(idTx.Blk.I)
 				continue
 			}
 
 			// make sure the tx exists in the blockchain
-			ok, err := verifyExistence(idTx.Tx.H)
-			if err != nil || !ok {
+			foundInBlock, err := verifyExistence(idTx.Tx.H)
+			if err != nil || foundInBlock == 0 {
 				// This tx does not exist in the blockchain!
 				fmt.Println("Either this tx does not exist on the blockchain, or there was an error checking!", err, idTx.Tx.H)
 				continue
 			} else {
-				fmt.Println("Found in block", idTx.Tx.H)
+				pct := idx * 100 / len(bmapIdTxs)
+				fmt.Printf("Mempool confirms %s in block %d %d\n", idTx.Tx.H, foundInBlock, pct)
 			}
 
 			// Check if ID key exists
@@ -157,9 +166,7 @@ func Build(currentBlock int) {
 			conn.UpsertOne("identityState", filter, updatedIdentity)
 
 			// persist our progress to disk
-			if err := persist.Save("./block.tmp", currentBlock); err != nil {
-				log.Fatalln(err)
-			}
+			saveProgress(idTx.Blk.I)
 		}
 	}
 
@@ -276,7 +283,7 @@ type MapiStatusPayload struct {
 // 	"mimetype": "application/json"
 // }
 
-func verifyExistence(tx string) (bool, error) {
+func verifyExistence(tx string) (uint32, error) {
 
 	// check w a miner that it is in fact in the blockchain
 	url := "https://www.ddpurse.com/openapi/mapi/tx/" + tx // "https://merchantapi.taal.com/mapi/tx/" + tx
@@ -288,7 +295,7 @@ func verifyExistence(tx string) (bool, error) {
 	request, err := http.NewRequest(http.MethodGet, url, payload)
 	if err != nil {
 		log.Println("Error", err)
-		return false, err
+		return 0, err
 	}
 
 	request.Header.Add("token", "561b756d12572020ea9a104c3441b71790acbbce95a6ddbf7e0630971af9424b")
@@ -297,7 +304,7 @@ func verifyExistence(tx string) (bool, error) {
 	var res *http.Response
 	if res, err = client.Do(request); err != nil {
 		log.Println("Error", err)
-		return false, err
+		return 0, err
 	}
 
 	defer func() {
@@ -308,7 +315,7 @@ func verifyExistence(tx string) (bool, error) {
 	body, err = ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Println("Error", err)
-		return false, err
+		return 0, err
 	}
 
 	// fmt.Println("get:\n", string(body))
@@ -317,20 +324,15 @@ func verifyExistence(tx string) (bool, error) {
 	err = json.Unmarshal(body, txStatus)
 	if err != nil {
 		log.Println("Error 999", err)
-		return false, err
+		return 0, err
 	}
 
 	pl := &MapiStatusPayload{}
 	err = json.Unmarshal([]byte(txStatus.Payload), pl)
 	if err != nil {
 		log.Println("Error 999", err)
-		return false, err
+		return 0, err
 	}
 
-	var inBlock bool
-	if pl.BlockHeight != 0 {
-		inBlock = true
-	}
-
-	return inBlock, nil
+	return pl.BlockHeight, nil
 }
