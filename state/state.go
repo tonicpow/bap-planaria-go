@@ -69,7 +69,7 @@ func Build(currentBlock int) {
 	}
 
 	// Make Identity State first
-	bmapIdTxs, err := conn.GetDocs(string(bap.ID), 1000, 0)
+	bmapIdTxs, err := conn.GetDocs(string(bap.ID), 1000, 0, bson.M{})
 	if err != nil {
 		log.Println("Error: 2", err)
 		return
@@ -144,7 +144,7 @@ func Build(currentBlock int) {
 	for i := 0; i < (int(numIdentities)/numPerPass)+1; i++ {
 		// log.Println("Page", i)
 		skip := i * numPerPass
-		attestationTxs, err := conn.GetDocs(string(bap.ATTEST), int64(numPerPass), int64(skip))
+		attestationTxs, err := conn.GetDocs(string(bap.ATTEST), int64(numPerPass), int64(skip), bson.M{})
 		if err != nil {
 			log.Println("Error: 3", err)
 			return
@@ -185,7 +185,7 @@ func Build(currentBlock int) {
 		}
 
 		skip = 0
-		revokeTxs, err := conn.GetDocs(string(bap.REVOKE), int64(numPerPass), int64(skip))
+		revokeTxs, err := conn.GetDocs(string(bap.REVOKE), int64(numPerPass), int64(skip), bson.M{})
 		if err != nil {
 			log.Println("Error: 3", err)
 			return

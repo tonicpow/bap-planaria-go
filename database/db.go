@@ -97,10 +97,10 @@ func (c *Connection) ClearState() error {
 
 // GetDocs gets a number of documents for a given collection
 // TODO: Supply query like above
-func (c *Connection) GetDocs(collectionName string, limit int64, skip int64) ([]bmap.Tx, error) {
+func (c *Connection) GetDocs(collectionName string, limit int64, skip int64, filter bson.M) ([]bmap.Tx, error) {
 	collection := c.Database(databaseName).Collection(collectionName)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	cur, err := collection.Find(ctx, bson.D{}, &options.FindOptions{
+	cur, err := collection.Find(ctx, filter, &options.FindOptions{
 		Skip:  &skip,
 		Limit: &limit,
 	})
@@ -118,6 +118,36 @@ func (c *Connection) GetDocs(collectionName string, limit int64, skip int64) ([]
 		}
 
 		txs = append(txs, bmapTx)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return txs, nil
+}
+
+// GetStateDocs gets a number of documents for a given state collection
+// TODO: Supply query like above
+func (c *Connection) GetStateDocs(collectionName string, limit int64, skip int64, filter bson.M) ([]bson.M, error) {
+	collection := c.Database(databaseName).Collection(collectionName)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	cur, err := collection.Find(ctx, filter, &options.FindOptions{
+		Skip:  &skip,
+		Limit: &limit,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cur.Close(context.Background())
+	var txs []bson.M
+	for cur.Next(context.Background()) {
+		// To decode into a bmap.Tx
+		var record bson.M
+		err := cur.Decode(&record)
+		if err != nil {
+			return nil, err
+		}
+
+		txs = append(txs, record)
 	}
 	if err := cur.Err(); err != nil {
 		return nil, err

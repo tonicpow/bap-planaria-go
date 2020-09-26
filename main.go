@@ -15,12 +15,14 @@ import (
 	"time"
 
 	"github.com/bitcoinsv/bsvutil"
+	"github.com/mrz1836/go-logger"
 	"github.com/rohenaz/go-bap"
 	"github.com/rohenaz/go-bmap"
 	"github.com/rohenaz/go-bob"
 	"github.com/tidwall/sjson"
 	"github.com/tonicpow/bap-planaria-go/database"
 	"github.com/tonicpow/bap-planaria-go/persist"
+	"github.com/tonicpow/bap-planaria-go/router"
 	"github.com/tonicpow/bap-planaria-go/state"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -270,6 +272,17 @@ func main() {
 		fmt.Printf("State sync complete in %fs\n", diff)
 	}
 
+	if stateBlock == 0 {
+		// Load the server
+		logger.Data(2, logger.DEBUG, "starting Go web server...", logger.MakeParameter("port", 8888))
+		srv := &http.Server{
+			Addr:         ":8888",
+			Handler:      router.Handlers(),
+			ReadTimeout:  15 * time.Second,
+			WriteTimeout: 15 * time.Second,
+		}
+		logger.Fatalln(srv.ListenAndServe())
+	}
 	stateBlock = currentBlock
 	if err := persist.Save("./block.tmp", currentBlock); err != nil {
 		log.Fatalln(err)

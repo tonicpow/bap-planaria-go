@@ -3,10 +3,12 @@ module github.com/tonicpow/bap-planaria-go
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.34.31 // indirect
+	github.com/aws/aws-sdk-go v1.34.32 // indirect
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9
 	github.com/golang/snappy v0.0.2 // indirect
+	github.com/julienschmidt/httprouter v1.3.0
 	github.com/klauspost/compress v1.11.0 // indirect
+	github.com/mrz1836/go-api-router v0.3.3
 	github.com/rohenaz/go-bap v0.0.5
 	github.com/rohenaz/go-bitcoin v0.0.3
 	github.com/rohenaz/go-bmap v0.0.7
