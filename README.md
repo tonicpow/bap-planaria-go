@@ -24,7 +24,9 @@ PLANARIA_TOKEN
 
     A token from https://token.planaria.network
 
-## Start indexer
+## Start indexer & api server
+
+API server will start once sync is complete.
 
 ```
 go run main.go
@@ -49,8 +51,54 @@ Toggle this off to contact a miner for each tx that gets ingested into the state
 func Build(fromBlock int, trust bool) {
 ```
 
-## Start web server
+## Query API
+
+### Endpoints
+
+Identity State: `/find/identityState`
+
+#### Parameters:
+
+- query
+- limit
+- skip
+
+### Example
+
+You can query using a mongo style find query like this:
+
+```json
+{ "Tx.h": "ef1f414c51aabbf5d2f02dd448baf7926b1f5b492d9359a7a0b533d35e14d0f5" }
+```
+
+base64 encode that query:
+
+`eyJUeC5oIjoiZWYxZjQxNGM1MWFhYmJmNWQyZjAyZGQ0NDhiYWY3OTI2YjFmNWI0OTJkOTM1OWE3YTBiNTMzZDM1ZTE0ZDBmNSJ9`
+
+and send it as the `query` parameter
 
 ```
-todo
+/find/identityState?limit=100&skip=0&query=eyJUeC5oIjoiZWYxZjQxNGM1MWFhYmJmNWQyZjAyZGQ0NDhiYWY3OTI2YjFmNWI0OTJkOTM1OWE3YTBiNTMzZDM1ZTE0ZDBmNSJ9
+```
+
+and get a response like:
+
+```json
+[
+  {
+    "IDControlAddress": "1PSiEkLGqxL6FFpsohy1BG4mpPyhP9ChK5",
+    "IDHistory": [
+      {
+        "address": "1DjVDse2n9FCFwT4214Qsh7WRSSfLN5eD9",
+        "firstSeen": 590194,
+        "lastSeen": 0
+      }
+    ],
+    "IDKey": "66a32aaafc3fa84f72a01bb49a93b71087f2d72afe874e6ef81a15cc5fa90517",
+    "Tx": {
+      "h": "ef1f414c51aabbf5d2f02dd448baf7926b1f5b492d9359a7a0b533d35e14d0f5"
+    },
+    "_id": "5f6f66dc56de7760019b6342"
+  }
+]
 ```

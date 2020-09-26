@@ -215,6 +215,8 @@ func main() {
 }
 
 func startServer() {
+
+	// TODO: Make configurable
 	// Load the server
 	logger.Data(2, logger.DEBUG, "starting Go web server...", logger.MakeParameter("port", 8888))
 	srv := &http.Server{
