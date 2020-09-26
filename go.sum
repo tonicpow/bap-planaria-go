@@ -100,8 +100,6 @@ github.com/rohenaz/go-bitcoin v0.0.2 h1:Qi/Sjtd2BkcjsFqLvGd9edZ9zmYrQRD2OAB2gpH5
 github.com/rohenaz/go-bitcoin v0.0.2/go.mod h1:SeAs3+ATQZB0J6ysNWyspNAiZXPfistYrks7dGtPz5I=
 github.com/rohenaz/go-bitcoin v0.0.3 h1:VnqLfa06fI7d8Ao9l2ePxHFrAcWJ9VKGFkOoue0hCQs=
 github.com/rohenaz/go-bitcoin v0.0.3/go.mod h1:SeAs3+ATQZB0J6ysNWyspNAiZXPfistYrks7dGtPz5I=
-github.com/rohenaz/go-bmap v0.0.6 h1:gB7ooHZS8Cq33jYfJmbiWg9uXBro2oe4JupDcOQ5J5E=
-github.com/rohenaz/go-bmap v0.0.6/go.mod h1:9ctrzVZbsVszJnLQ2qLSmpdFZrQYiLIGaHQrR8VpZx0=
 github.com/rohenaz/go-bmap v0.0.7 h1:1ajJVKDJ2rlE6b+vUPYCL2ztnGMhFPOr3Y+XFRqbLgk=
 github.com/rohenaz/go-bmap v0.0.7/go.mod h1:9ctrzVZbsVszJnLQ2qLSmpdFZrQYiLIGaHQrR8VpZx0=
 github.com/rohenaz/go-bob v0.0.0-20200704190822-4b02dd80ee80 h1:lxaVlf9j6iTQ+nYA67ph7B7H/id/uJ6RIXe9F549zKE=

@@ -18,7 +18,6 @@ import (
 	"github.com/rohenaz/go-bap"
 	"github.com/rohenaz/go-bmap"
 	"github.com/rohenaz/go-bob"
-	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/tonicpow/bap-planaria-go/database"
 	"github.com/tonicpow/bap-planaria-go/state"
@@ -75,6 +74,7 @@ type MatterCloudBlockResult struct {
 // Constants
 var currentBlock = 590000
 var fromBlock = currentBlock
+var stateBlock = 0
 
 func crawl(query []byte, height int) {
 	client := http.Client{}
@@ -107,20 +107,23 @@ func crawl(query []byte, height int) {
 			break
 		}
 
-		bobGjsonResult := gjson.Get(string(line), "*")
-		// Update the current_block height when a tx with new block is discovered
-		if int(bobGjsonResult.Get("blk.i").Int()) > currentBlock {
-			currentBlock = int(bobGjsonResult.Get("blk.i").Int())
-			fmt.Printf("Crawling block: %d\n", currentBlock)
-		}
+		// bobGjsonResult := gjson.Get(string(line), "*")
+		// // Update the current_block height when a tx with new block is discovered
+		// if int(bobGjsonResult.Get("blk.i").Int()) > currentBlock {
+		// 	currentBlock = int(bobGjsonResult.Get("blk.i").Int())
+		// 	fmt.Printf("Crawling block: %d\n", currentBlock)
+		// }
 
 		bobData := bob.New()
 		err = bobData.FromBytes(line)
 		if err != nil {
-			fmt.Println("Error:", err)
+			fmt.Println("Error: 1", err)
 			return
 		}
 
+		if int(bobData.Blk.I) > currentBlock {
+			currentBlock = int(bobData.Blk.I)
+		}
 		// Transform from BOB to BMAP
 		bmapData := bmap.New()
 		err = bmapData.FromBob(bobData)
@@ -253,9 +256,15 @@ func main() {
 
 	then = time.Now()
 
-	state.Build()
+	if currentBlock > stateBlock {
+		state.Build(stateBlock)
+	}
+
+	stateBlock = currentBlock
+
 	diff = time.Now().Sub(then).Seconds()
 	fmt.Printf("State sync complete in %fs\n", diff)
-	// time.Sleep(10 * time.Second)
-	// main()
+
+	time.Sleep(30 * time.Second)
+	main()
 }

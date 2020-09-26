@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/rohenaz/go-bmap"
+	"github.com/tonicpow/bap-planaria-go/attestation"
 	"github.com/tonicpow/bap-planaria-go/identity"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -36,6 +37,23 @@ func Connect(ctx context.Context) (*Connection, error) {
 	return &Connection{client}, nil
 }
 
+// GetIdentityStateFromAddress gets a single document for a state collection
+func (c *Connection) GetIdentityStateFromAddress(address string) (*identity.State, error) {
+	collection := c.Database(databaseName).Collection("identityState")
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	filter := bson.M{"IDHistory.address": bson.M{"$eq": address}}
+	opts := options.FindOne()
+	document := collection.FindOne(ctx, filter, opts)
+
+	idState := identity.State{}
+	err := document.Decode(&idState)
+	if err != nil {
+		return nil, err
+	}
+
+	return &idState, nil
+}
+
 // GetIdentityState gets a single document for a state collection
 func (c *Connection) GetIdentityState(idKey string) (*identity.State, error) {
 	collection := c.Database(databaseName).Collection("identityState")
@@ -51,6 +69,23 @@ func (c *Connection) GetIdentityState(idKey string) (*identity.State, error) {
 	}
 
 	return &idState, nil
+}
+
+// GetAttestationState gets a single document for a state collection
+func (c *Connection) GetAttestationState(urnHash string) (*attestation.State, error) {
+	collection := c.Database(databaseName).Collection("attestationState")
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	filter := bson.M{"urnHash": bson.M{"$eq": urnHash}}
+	opts := options.FindOne()
+	document := collection.FindOne(ctx, filter, opts)
+
+	attestationState := attestation.State{}
+	err := document.Decode(&attestationState)
+	if err != nil {
+		return nil, err
+	}
+
+	return &attestationState, nil
 }
 
 func (c *Connection) ClearState() error {
@@ -121,10 +156,10 @@ func (c *Connection) UpsertOne(collectionName string, filter interface{}, data b
 }
 
 // CountCollectionDocs returns the number of records in a given colletion
-func (c *Connection) CountCollectionDocs(collectionName string) (int64, error) {
+func (c *Connection) CountCollectionDocs(collectionName string, filter bson.M) (int64, error) {
 	collection := c.Database(databaseName).Collection(collectionName)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	count, err := collection.CountDocuments(ctx, bson.D{})
+	count, err := collection.CountDocuments(ctx, filter)
 	if err != nil {
 		return 0, err
 	}

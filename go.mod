@@ -12,7 +12,7 @@ require (
 	github.com/rohenaz/go-bmap v0.0.7
 	github.com/rohenaz/go-bob v0.0.0-20200711220921-847f9f004275
 	github.com/stretchr/testify v1.6.1 // indirect
-	github.com/tidwall/gjson v1.6.1
+	github.com/tidwall/gjson v1.6.1 // indirect
 	github.com/tidwall/sjson v1.1.1
 	go.mongodb.org/mongo-driver v1.4.1
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208 // indirect

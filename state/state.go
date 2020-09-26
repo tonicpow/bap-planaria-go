@@ -51,7 +51,7 @@ func validateIDTx(idTx bmap.Tx) (valid bool) {
 }
 
 // Build starts the state builder
-func Build() {
+func Build(currentBlock int) {
 
 	var numPerPass int = 100
 	// Query x records at a time in a loop
@@ -64,12 +64,14 @@ func Build() {
 	defer conn.Disconnect(ctx)
 
 	// Clear old state
-	conn.ClearState()
+	if currentBlock == 0 {
+		conn.ClearState()
+	}
 
 	// Make Identity State first
 	bmapIdTxs, err := conn.GetDocs(string(bap.ID), 1000, 0)
 	if err != nil {
-		log.Println("Error:", err)
+		log.Println("Error: 2", err)
 		return
 	}
 
@@ -134,7 +136,7 @@ func Build() {
 	}
 
 	// Find number of passes - should get this from state not raw
-	numIdentities, err := conn.CountCollectionDocs(string(bap.ID))
+	numIdentities, err := conn.CountCollectionDocs(string(bap.ID), bson.M{})
 	if err != nil {
 		log.Println("Error", err)
 	}
@@ -144,7 +146,7 @@ func Build() {
 		skip := i * numPerPass
 		attestationTxs, err := conn.GetDocs(string(bap.ATTEST), int64(numPerPass), int64(skip))
 		if err != nil {
-			log.Println("Error:", err)
+			log.Println("Error: 3", err)
 			return
 		}
 
@@ -153,27 +155,58 @@ func Build() {
 			// log.Printf("Got Doc! %+v %s", tx.BAP, identities)
 			if tx.AIP.Validate() {
 
-				// 1. Look up related Identity (find an idetity with the AIP address in history?)
-				// 2. Check that current block is between the firstSeen and lastSeen
-
-				// Save to state collection
-
-				switch tx.BAP.Type {
-				case bap.ATTEST:
-					// log.Printf("Attestation! Attestor: %s Hash: %s", tx.AIP.Address, tx.BAP.URNHash)
-					break
-				case bap.REVOKE:
-					log.Println("Revocation")
-					break
-				case bap.ID:
-					log.Println("ID!")
-					break
+				// 1. Look up related Identity (find an identity with the AIP address in history)
+				// log.Printf("Find id %+v", tx.AIP.Address)
+				idState, err := conn.GetIdentityStateFromAddress(tx.AIP.Address)
+				if err != nil {
+					log.Println("Error: 4", err)
+					return
 				}
+
+				firstSeen := int(idState.IDHistory[0].FirstSeen)
+				// lastSeen := int(idState.IDHistory[0].LastSeen)
+
+				// log.Printf("Last seen %d currentBlock %d", lastSeen, tx.Blk.I)
+
+				// 2. TODO: Check that current block is between the firstSeen and lastSeen
+				if int(tx.Blk.I) > firstSeen {
+					// log.Println("Valid ID state!", idState)
+
+					conn.UpsertOne("attestationState", bson.M{"Tx.h": tx.Tx.H}, bson.M{
+						"urnHash":  tx.BAP.URNHash,
+						"Tx":       tx.Tx,
+						"sequence": tx.BAP.Sequence,
+						"Blk":      tx.Blk,
+					})
+				}
+
 			}
 
 		}
-		// Find a previous record with the same identity
 
+		skip = 0
+		revokeTxs, err := conn.GetDocs(string(bap.REVOKE), int64(numPerPass), int64(skip))
+		if err != nil {
+			log.Println("Error: 3", err)
+			return
+		}
+
+		// var identities []Identity
+		for _, tx := range revokeTxs {
+
+			// Get the attestation we are revoking, sorted by most recent
+			attestationState, err := conn.GetAttestationState(tx.BAP.URNHash)
+			if err != nil {
+				log.Println("Error revoking attestation", err)
+			}
+			// check its block height against this
+			if tx.Blk.I > attestationState.Blk.I {
+
+				// revoke is newer
+				log.Println("Revoke is newer")
+
+			}
+		}
 	}
 }
 
