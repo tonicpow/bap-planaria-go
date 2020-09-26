@@ -4,17 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
-	"github.com/bitcoinsv/bsvutil"
 	"github.com/mrz1836/go-logger"
 	"github.com/rohenaz/go-bap"
 	"github.com/rohenaz/go-bmap"
@@ -167,87 +163,14 @@ func crawl(query []byte, height int) {
 	}
 }
 
-func getBlockHeaders() {
-
-	resp, err := http.Get("https://txdb.mattercloud.io/api/v1/blockheader/")
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	response := &MatterCloudBlockResult{}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		panic(err)
-	}
-
-	if len(response.Result) == 0 {
-		panic("that just happened")
-	}
-
-	latestBlock := response.Result[0]
-
-	fmt.Println("get:\n", string(latestBlock.Height))
-
-	var readingBlockHeight = latestBlock.Height
-
-	for readingBlockHeight > 0 {
-		log.Println("Reading headers from block ", readingBlockHeight)
-		resp, err = http.Get("https://txdb.mattercloud.io/api/v1/blockheader/" + strconv.FormatUint(readingBlockHeight, 10) + "?limit=100&order=desc%7Casc&pretty")
-		if err != nil {
-			panic(err)
-		}
-
-		defer resp.Body.Close()
-		body, err = ioutil.ReadAll(resp.Body)
-
-		response = &MatterCloudBlockResult{}
-		err = json.Unmarshal(body, &response)
-		if err != nil {
-			panic(err)
-		}
-
-		if len(response.Result) == 0 {
-			panic("that just happened 2")
-		}
-
-		for _, block := range response.Result {
-			log.Println(block.Hash)
-			if block.Height < readingBlockHeight {
-				readingBlockHeight = block.Height
-			}
-		}
-	}
-
-}
-
-func getBlock(blockhash string) (err error, block *bsvutil.Block) {
-
-	resp, err := http.Get("https://txdb.mattercloud.io/api/v1/blockheader/?limit=100&order=desc%7Casc&pretty")
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	fmt.Println("get:\n", string(body))
-
-	block = &bsvutil.Block{}
-
-	return nil, block
-}
-
 func main() {
 
 	// load persisted block to continue from
 	if err := persist.Load("./block.tmp", &currentBlock); err != nil {
 		log.Println("Cant load it for some reason", err)
+	} else {
+		stateBlock = currentBlock
 	}
-
-	log.Println("Fine!", currentBlock)
 
 	then := time.Now()
 	q := []byte(`
@@ -259,10 +182,10 @@ func main() {
 	}`)
 	crawl(q, currentBlock)
 
-	// getBlockHeaders()
+	// matter.getBlockHeaders()
 
 	diff := time.Now().Sub(then).Seconds()
-	fmt.Printf("Bitbus sync complete in %fs\n", diff)
+	fmt.Printf("Bitbus sync complete in %fs\nBlock height: %d\n", diff, currentBlock)
 
 	then = time.Now()
 
@@ -270,25 +193,30 @@ func main() {
 		state.Build(stateBlock)
 		diff = time.Now().Sub(then).Seconds()
 		fmt.Printf("State sync complete in %fs\n", diff)
+	} else {
+		fmt.Println("everything up-to-date")
 	}
 
+	// First time through we start the server once synchronized
 	if stateBlock == 0 {
-		// Load the server
-		logger.Data(2, logger.DEBUG, "starting Go web server...", logger.MakeParameter("port", 8888))
-		srv := &http.Server{
-			Addr:         ":8888",
-			Handler:      router.Handlers(),
-			ReadTimeout:  15 * time.Second,
-			WriteTimeout: 15 * time.Second,
-		}
-		logger.Fatalln(srv.ListenAndServe())
+		go startServer()
 	}
 
+	// update the state block clounter
 	stateBlock = currentBlock
-	if err := persist.Save("./block.tmp", currentBlock); err != nil {
-		log.Fatalln(err)
-	}
 
 	time.Sleep(30 * time.Second)
 	main()
+}
+
+func startServer() {
+	// Load the server
+	logger.Data(2, logger.DEBUG, "starting Go web server...", logger.MakeParameter("port", 8888))
+	srv := &http.Server{
+		Addr:         ":8888",
+		Handler:      router.Handlers(),
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+	}
+	logger.Fatalln(srv.ListenAndServe())
 }

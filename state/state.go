@@ -15,6 +15,7 @@ import (
 	"github.com/rohenaz/go-bmap"
 	"github.com/tonicpow/bap-planaria-go/database"
 	"github.com/tonicpow/bap-planaria-go/identity"
+	"github.com/tonicpow/bap-planaria-go/persist"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -69,11 +70,12 @@ func Build(currentBlock int) {
 
 	// Clear old state
 	if currentBlock == 0 {
+		log.Println("Clearing state")
 		conn.ClearState()
 	}
 
 	// Make Identity State first
-	bmapIdTxs, err := conn.GetDocs(string(bap.ID), 1000, 0, bson.M{})
+	bmapIdTxs, err := conn.GetDocs(string(bap.ID), 1000, 0, bson.M{"blk.i": bson.M{"$gt": currentBlock}})
 	if err != nil {
 		log.Println("Error: 2", err)
 		return
@@ -85,12 +87,11 @@ func Build(currentBlock int) {
 
 			idHistory := []identity.Identity{}
 
-			// TODO: Use count instead to make this faster
-			txState, _ := conn.GetIdentityStateByTxID(idTx.Tx.H)
-
-			if txState != nil {
-				log.Println("Already have this one", txState.Tx.H)
+			// See if we have this tx already, if so skip it
+			numTxs, _ := conn.CountCollectionDocs("identityState", bson.M{"Tx.h": idTx.Tx.H})
+			if numTxs != 0 {
 				// We already have this one
+				log.Println("This tx is already in the state", idTx.Tx.H)
 				continue
 			}
 
@@ -98,10 +99,10 @@ func Build(currentBlock int) {
 			ok, err := verifyExistence(idTx.Tx.H)
 			if err != nil || !ok {
 				// This tx does not exist in the blockchain!
-				log.Println("Either this tx does not exist on the blockchain, or there was an error checking!", err, idTx.Tx.H)
+				fmt.Println("Either this tx does not exist on the blockchain, or there was an error checking!", err, idTx.Tx.H)
 				continue
 			} else {
-				log.Println("Found in block", idTx.Tx.H)
+				fmt.Println("Found in block", idTx.Tx.H)
 			}
 
 			// Check if ID key exists
@@ -117,7 +118,6 @@ func Build(currentBlock int) {
 			// If its a record for the same ID key (excluding the very same tx)
 			if idState != nil && idState.IDKey == idTx.BAP.IDKey && idState.Tx.H != idTx.Tx.H && len(idState.IDHistory) > 0 {
 
-				// ok, hard part...
 				// update identity history
 
 				// TODO: validate if this is a valid chain of signatures
@@ -155,6 +155,11 @@ func Build(currentBlock int) {
 			// Upsert as identity state document
 			filter := bson.M{"IDKey": bson.M{"$eq": idTx.BAP.IDKey}}
 			conn.UpsertOne("identityState", filter, updatedIdentity)
+
+			// persist our progress to disk
+			if err := persist.Save("./block.tmp", currentBlock); err != nil {
+				log.Fatalln(err)
+			}
 		}
 	}
 
@@ -182,8 +187,8 @@ func Build(currentBlock int) {
 				// log.Printf("Find id %+v", tx.AIP.Address)
 				idState, err := conn.GetIdentityStateFromAddress(tx.AIP.Address)
 				if err != nil {
-					log.Println("Error: 4", err)
-					return
+					log.Println("No identity found for address", tx.AIP.Address, tx.Tx.H)
+					continue
 				}
 
 				firstSeen := int(idState.IDHistory[0].FirstSeen)
@@ -221,10 +226,10 @@ func Build(currentBlock int) {
 			attestationState, err := conn.GetAttestationState(tx.BAP.URNHash)
 			if err != nil {
 				log.Println("Error revoking attestation", err)
+				continue
 			}
 			// check its block height against this
 			if tx.Blk.I > attestationState.Blk.I {
-
 				// revoke is newer
 				log.Println("Revoke is newer")
 

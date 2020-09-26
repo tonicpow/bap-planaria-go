@@ -30,6 +30,10 @@ PLANARIA_TOKEN
 go run main.go
 ```
 
+## Persisted sync progress
+
+A `./block.tmp` file is created containing the latest synchronized block height. If this is set to 0 or any initial block height the sync will begin from this point.
+
 ## Start web server
 
 ```
