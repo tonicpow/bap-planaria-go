@@ -42,9 +42,9 @@ Delete `./block.tmp`, (or set to the block height you want to sync from) and dro
 
 ## Trust mode
 
-Toggle this on to trust the data coming from Bitbus. This makes sync extremely fast. Individual txs can be validated later.
+Toggle this on to trust the blockchain data coming from Bitbus as accurate & authentic. This makes sync extremely fast at the expense of personal verification.
 
-Toggle this off to contact a miner for each tx that gets ingested into the state to make sure it is in fact in a Bitcoin block.
+Toggle this off to contact a miner for each tx that gets ingested into the state to make sure it is in a Bitcoin block.
 
 ```go
 // Build starts the state builder, starting from the given block

@@ -113,7 +113,6 @@ func (c *Connection) ClearState() error {
 }
 
 // GetDocs gets a number of documents for a given collection
-// TODO: Supply query like above
 func (c *Connection) GetDocs(collectionName string, limit int64, skip int64, filter bson.M) ([]bmap.Tx, error) {
 	collection := c.Database(databaseName).Collection(collectionName)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
@@ -143,7 +142,6 @@ func (c *Connection) GetDocs(collectionName string, limit int64, skip int64, fil
 }
 
 // GetStateDocs gets a number of documents for a given state collection
-// TODO: Supply query like above
 func (c *Connection) GetStateDocs(collectionName string, limit int64, skip int64, filter bson.M) ([]bson.M, error) {
 	collection := c.Database(databaseName).Collection(collectionName)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
