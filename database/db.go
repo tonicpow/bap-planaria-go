@@ -54,6 +54,23 @@ func (c *Connection) GetIdentityStateFromAddress(address string) (*identity.Stat
 	return &idState, nil
 }
 
+// GetIdentityStateByTxID gets a single document for a state collection by txid
+func (c *Connection) GetIdentityStateByTxID(txid string) (*identity.State, error) {
+	collection := c.Database(databaseName).Collection("identityState")
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	filter := bson.M{"Tx.h": bson.M{"$eq": txid}}
+	opts := options.FindOne()
+	document := collection.FindOne(ctx, filter, opts)
+
+	idState := identity.State{}
+	err := document.Decode(&idState)
+	if err != nil {
+		return nil, err
+	}
+
+	return &idState, nil
+}
+
 // GetIdentityState gets a single document for a state collection
 func (c *Connection) GetIdentityState(idKey string) (*identity.State, error) {
 	collection := c.Database(databaseName).Collection("identityState")

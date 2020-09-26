@@ -2,8 +2,12 @@ package state
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/rohenaz/go-bap"
@@ -80,6 +84,25 @@ func Build(currentBlock int) {
 		if validateIDTx(idTx) {
 
 			idHistory := []identity.Identity{}
+
+			// TODO: Use count instead to make this faster
+			txState, _ := conn.GetIdentityStateByTxID(idTx.Tx.H)
+
+			if txState != nil {
+				log.Println("Already have this one", txState.Tx.H)
+				// We already have this one
+				continue
+			}
+
+			// make sure the tx exists in the blockchain
+			ok, err := verifyExistence(idTx.Tx.H)
+			if err != nil || !ok {
+				// This tx does not exist in the blockchain!
+				log.Println("Either this tx does not exist on the blockchain, or there was an error checking!", err, idTx.Tx.H)
+				continue
+			} else {
+				log.Println("Found in block", idTx.Tx.H)
+			}
 
 			// Check if ID key exists
 			idState, _ := conn.GetIdentityState(idTx.BAP.IDKey)
@@ -208,4 +231,101 @@ func Build(currentBlock int) {
 			}
 		}
 	}
+}
+
+type MapiTxStatus struct {
+	Payload   string `json:"payload"`
+	Signature string `json:"signature"`
+	PublicKey string `json:"publicKey"`
+	Encoding  string `json:"encoding"`
+	MimeType  string `json:"mimetype"`
+}
+
+type MapiStatusPayload struct {
+	APIVersion            string `json:"apiVersion"`
+	BlockHash             string `json:"blockHash"`
+	BlockHeight           uint32 `json:"blockHeight"`
+	Confirmations         uint32 `json:"confirmations"`
+	MinerID               string `json:"minerId"`
+	ResultDescription     string `json:"resultDescription"`
+	ReturnResult          string `json:"returnResult"`
+	Timestamp             string `json:"timestamp"`
+	TxSecondMempoolExpiry int    `json:"txSecondMempoolExpiry"`
+}
+
+// Mempool
+// {
+// 	"payload":"{\"apiVersion\":\"0.1.0\",\"timestamp\":\"2020-09-26T18:12:24.318Z\",\"returnResult\":\"success\",\"resultDescription\":\"\",\"blockHash\":\"0000000000000000003110de9dc837ccf2e4930d925da49dc7a2201884fad266\",\"blockHeight\":590194,\"confirmations\":64112,\"minerId\":null,\"txSecondMempoolExpiry\":0}",
+// 	"signature":null,
+// 	"publicKey":null,
+// 	"encoding":"UTF-8",
+// 	"mimetype":"applicaton/json"
+// }
+
+// Taal
+// {
+// 	"payload": "{\"apiVersion\":\"0.1.0\",\"timestamp\":\"2020-09-26T17:39:47.065Z\",\"returnResult\":\"failure\",\"resultDescription\":\"ERROR: No such mempool or blockchain transaction. Use gettransaction for wallet transactions.\",\"blockHash\":null,\"blockHeight\":null,\"confirmations\":0,\"minerId\":\"03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270\",\"txSecondMempoolExpiry\":0}",
+// 	"signature": "3045022100e77cb90a4e8f6e1e9eb02e839b50dba023deb769720ea3b2270bb31a3a5808f10220165ed53b5cd62ab7a0df6c4fac208604f616d4e0b706445892c92938312f749e",
+// 	"publicKey": "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270",
+// 	"encoding": "UTF-8",
+// 	"mimetype": "application/json"
+// }
+
+func verifyExistence(tx string) (bool, error) {
+
+	// check w a miner that it is in fact in the blockchain
+	url := "https://www.ddpurse.com/openapi/mapi/tx/" + tx // "https://merchantapi.taal.com/mapi/tx/" + tx
+	payload := strings.NewReader("")
+
+	// resp, err := http.Get(url)
+
+	client := &http.Client{}
+	request, err := http.NewRequest(http.MethodGet, url, payload)
+	if err != nil {
+		log.Println("Error", err)
+		return false, err
+	}
+
+	request.Header.Add("token", "561b756d12572020ea9a104c3441b71790acbbce95a6ddbf7e0630971af9424b")
+	request.Header.Add("Content-Type", "application/json")
+
+	var res *http.Response
+	if res, err = client.Do(request); err != nil {
+		log.Println("Error", err)
+		return false, err
+	}
+
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	var body []byte
+	body, err = ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Println("Error", err)
+		return false, err
+	}
+
+	// fmt.Println("get:\n", string(body))
+
+	txStatus := &MapiTxStatus{}
+	err = json.Unmarshal(body, txStatus)
+	if err != nil {
+		log.Println("Error 999", err)
+		return false, err
+	}
+
+	pl := &MapiStatusPayload{}
+	err = json.Unmarshal([]byte(txStatus.Payload), pl)
+	if err != nil {
+		log.Println("Error 999", err)
+		return false, err
+	}
+
+	var inBlock bool
+	if pl.BlockHeight != 0 {
+		inBlock = true
+	}
+
+	return inBlock, nil
 }

@@ -283,6 +283,7 @@ func main() {
 		}
 		logger.Fatalln(srv.ListenAndServe())
 	}
+
 	stateBlock = currentBlock
 	if err := persist.Save("./block.tmp", currentBlock); err != nil {
 		log.Fatalln(err)
