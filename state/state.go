@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -62,6 +63,9 @@ func Build() {
 	}
 	defer conn.Disconnect(ctx)
 
+	// Clear old state
+	conn.ClearState()
+
 	// Make Identity State first
 	bmapIdTxs, err := conn.GetDocs(string(bap.ID), 1000, 0)
 	if err != nil {
@@ -72,35 +76,60 @@ func Build() {
 	for _, idTx := range bmapIdTxs {
 
 		if validateIDTx(idTx) {
-			// Check if ID key exists
-			idState, err := conn.GetIdentityState(idTx.BAP.IDKey)
-			if err != nil {
-				log.Println("Error", err)
-			}
-			// If found
-			if idState != nil && idState.IDKey == idTx.BAP.IDKey {
 
-				log.Printf("ToDo %+v", idState)
+			idHistory := []identity.Identity{}
+
+			// Check if ID key exists
+			idState, _ := conn.GetIdentityState(idTx.BAP.IDKey)
+
+			updatedIdentity := bson.M{
+				"IDControlAddress": idTx.AIP.Address,
+				"IDKey":            idTx.BAP.IDKey,
+				"IDHistory":        idHistory,
+				"Tx":               idTx.Tx,
+			}
+
+			// If its a record for the same ID key (excluding the very same tx)
+			if idState != nil && idState.IDKey == idTx.BAP.IDKey && idState.Tx.H != idTx.Tx.H && len(idState.IDHistory) > 0 {
 
 				// ok, hard part...
 				// update identity history
-				// - validate if this is a valid chain of signatures
-				// - when a key is replaced it is signed with the previous address/key
 
+				// TODO: validate if this is a valid chain of signatures
+
+				// Get prev address
+				prevAddress := idState.IDHistory[len(idState.IDHistory)-1].Address
+				if idTx.AIP.Address == idState.IDControlAddress {
+					// - when a key is replaced it is signed with the previous address/key
+					updatedIdentity["IDHistory"] = append(idHistory, identity.Identity{
+						Address:   idState.IDControlAddress,
+						FirstSeen: idState.IDHistory[len(idState.IDHistory)-1].FirstSeen,
+						LastSeen:  idTx.Blk.I,
+					})
+
+					updatedIdentity["IDControlAddress"] = idTx.BAP.Address
+				} else {
+					err = fmt.Errorf("Must use control address to change an identity %s %s %+v", prevAddress, idTx.AIP.Address, idState)
+					// Upsert as identity state document
+					filter := bson.M{"Tx.h": bson.M{"$eq": idTx.Tx.H}}
+					conn.UpsertOne("stateErrors", filter, bson.M{
+						"Tx":    idTx.Tx,
+						"Error": err.Error(),
+					})
+				}
+
+			} else {
+				// Brand new identity key
+				updatedIdentity["IDHistory"] = append(idHistory, identity.Identity{
+					Address:   idTx.BAP.Address,
+					FirstSeen: idTx.Blk.I,
+					LastSeen:  0,
+				})
 			}
 
 			// Upsert as identity state document
 			filter := bson.M{"IDKey": bson.M{"$eq": idTx.BAP.IDKey}}
-			conn.UpsertOne("identityState", filter, bson.M{
-				"IDControlAddress": idTx.AIP.Address,
-				"IDKey":            idTx.BAP.IDKey,
-				"IDHistory": []identity.Identity{{
-					Address:   idTx.BAP.Address,
-					FirstSeen: idTx.Blk.I,
-					LastSeen:  0,
-				}},
-			})
-
+			conn.UpsertOne("identityState", filter, updatedIdentity)
 		}
 	}
 

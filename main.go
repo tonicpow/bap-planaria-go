@@ -96,7 +96,7 @@ func crawl(query []byte, height int) {
 		log.Println(err)
 		return
 	}
-	fmt.Printf("current block? %d", currentBlock)
+	fmt.Printf("Initializing from block %d\n", currentBlock)
 
 	defer conn.Disconnect(ctx)
 	reader := bufio.NewReader(resp.Body)
@@ -236,6 +236,7 @@ func getBlock(blockhash string) (err error, block *bsvutil.Block) {
 
 func main() {
 
+	then := time.Now()
 	q := []byte(`
 	{
 	  "q": {
@@ -246,7 +247,15 @@ func main() {
 	crawl(q, currentBlock)
 
 	// getBlockHeaders()
+
+	diff := time.Now().Sub(then).Seconds()
+	fmt.Printf("Bitbus sync complete in %fs\n", diff)
+
+	then = time.Now()
+
 	state.Build()
+	diff = time.Now().Sub(then).Seconds()
+	fmt.Printf("State sync complete in %fs\n", diff)
 	// time.Sleep(10 * time.Second)
 	// main()
 }

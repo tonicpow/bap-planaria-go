@@ -44,7 +44,6 @@ func (c *Connection) GetIdentityState(idKey string) (*identity.State, error) {
 	opts := options.FindOne()
 	document := collection.FindOne(ctx, filter, opts)
 
-	// To decode into a bmap.Tx
 	idState := identity.State{}
 	err := document.Decode(&idState)
 	if err != nil {
@@ -52,6 +51,13 @@ func (c *Connection) GetIdentityState(idKey string) (*identity.State, error) {
 	}
 
 	return &idState, nil
+}
+
+func (c *Connection) ClearState() error {
+	collection := c.Database(databaseName).Collection("identityState")
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	return collection.Drop(ctx)
+	// TODO: Clear attestationState
 }
 
 // GetDocs gets a number of documents for a given collection
