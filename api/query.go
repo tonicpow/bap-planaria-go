@@ -20,7 +20,7 @@ func bitquery(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	collection := params.GetString("collection")
 	limit := params.GetInt("limit")
 	skip := params.GetInt("skip")
-	find := params.GetString("find")
+	find := params.GetString("query")
 
 	// decode b64 string
 	decoded, err := base64.StdEncoding.DecodeString(find)
