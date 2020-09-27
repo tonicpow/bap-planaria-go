@@ -2,12 +2,8 @@ package state
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
-	"strings"
 	"time"
 
 	"github.com/rohenaz/go-bap"
@@ -16,6 +12,7 @@ import (
 	"github.com/tonicpow/bap-planaria-go/config"
 	"github.com/tonicpow/bap-planaria-go/database"
 	"github.com/tonicpow/bap-planaria-go/identity"
+	"github.com/tonicpow/bap-planaria-go/miner"
 	"github.com/tonicpow/bap-planaria-go/persist"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -49,10 +46,13 @@ type Attestation struct {
 
 // SaveProgress persists the block height to ./block.tmp
 func SaveProgress(height uint32) {
-	// persist our progress to disk
-	if err := persist.Save("./block.tmp", height); err != nil {
-		log.Fatalln(err)
+	if height > 0 {
+		// persist our progress to disk
+		if err := persist.Save("./block.tmp", height); err != nil {
+			log.Fatalln(err)
+		}
 	}
+
 }
 
 func validateIDTx(idTx bmap.Tx) (valid bool) {
@@ -101,14 +101,14 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 			numTxs, _ := conn.CountCollectionDocs("identityState", bson.M{"Tx.h": idTx.Tx.H})
 			if numTxs != 0 {
 				// We already have this one
-				log.Println("This tx is already in the state", idTx.Tx.H)
+				log.Println("This tx is already in the state", idTx.Tx.H, idTx.Blk.I)
 				SaveProgress(idTx.Blk.I)
 				continue
 			}
 
 			if !trust {
 				// make sure the tx exists in the blockchain
-				foundInBlock, err := verifyExistence(idTx.Tx.H)
+				foundInBlock, err := miner.VerifyExistence(idTx.Tx.H)
 				if err != nil || foundInBlock == 0 {
 					// This tx does not exist in the blockchain!
 					fmt.Println("Either this tx does not exist on the blockchain, or there was an error checking!", err, idTx.Tx.H)
@@ -172,7 +172,8 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 
 			// persist our progress to disk
 			SaveProgress(idTx.Blk.I)
-			return int(idTx.Blk.I)
+			stateBlock = int(idTx.Blk.I)
+
 		}
 	}
 
@@ -250,44 +251,19 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 	return
 }
 
-func SyncState(currentBlock int) (newBlock int) {
+func SyncState(fromBlock int) (newBlock int) {
 	// Set up timer for state sync
 	stateStart := time.Now()
 
-	// if we've indexed some new txs to bring into the state
-	if currentBlock > newBlock {
-		// set tru to trust planaria, false to verify every tx with a miner
-		stateBlock := build(newBlock, config.TrustPlanaria)
-		diff := time.Now().Sub(stateStart).Seconds()
-		fmt.Printf("State sync complete in %fs\nSync height: %d\n", diff, stateBlock)
-	} else {
-		fmt.Println("everything up-to-date")
-	}
+	// set tru to trust planaria, false to verify every tx with a miner
+	newBlock = build(fromBlock, config.TrustPlanaria)
+	diff := time.Now().Sub(stateStart).Seconds()
+	fmt.Printf("State sync complete to block height %d in %fs\n", newBlock, diff)
 
 	// update the state block clounter
 	SaveProgress(uint32(newBlock))
 
 	return
-}
-
-type MapiTxStatus struct {
-	Payload   string `json:"payload"`
-	Signature string `json:"signature"`
-	PublicKey string `json:"publicKey"`
-	Encoding  string `json:"encoding"`
-	MimeType  string `json:"mimetype"`
-}
-
-type MapiStatusPayload struct {
-	APIVersion            string `json:"apiVersion"`
-	BlockHash             string `json:"blockHash"`
-	BlockHeight           uint32 `json:"blockHeight"`
-	Confirmations         uint32 `json:"confirmations"`
-	MinerID               string `json:"minerId"`
-	ResultDescription     string `json:"resultDescription"`
-	ReturnResult          string `json:"returnResult"`
-	Timestamp             string `json:"timestamp"`
-	TxSecondMempoolExpiry int    `json:"txSecondMempoolExpiry"`
 }
 
 // Mempool
@@ -307,57 +283,3 @@ type MapiStatusPayload struct {
 // 	"encoding": "UTF-8",
 // 	"mimetype": "application/json"
 // }
-
-func verifyExistence(tx string) (uint32, error) {
-
-	// check w a miner that it is in fact in the blockchain
-	url := config.MinerAPIEndpoint + tx // "https://merchantapi.taal.com/mapi/tx/" + tx
-	payload := strings.NewReader("")
-
-	// resp, err := http.Get(url)
-
-	client := &http.Client{}
-	request, err := http.NewRequest(http.MethodGet, url, payload)
-	if err != nil {
-		log.Println("Error", err)
-		return 0, err
-	}
-
-	request.Header.Add("token", config.MempoolToken)
-	request.Header.Add("Content-Type", "application/json")
-
-	var res *http.Response
-	if res, err = client.Do(request); err != nil {
-		log.Println("Error", err)
-		return 0, err
-	}
-
-	defer func() {
-		_ = res.Body.Close()
-	}()
-
-	var body []byte
-	body, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Println("Error", err)
-		return 0, err
-	}
-
-	// fmt.Println("get:\n", string(body))
-
-	txStatus := &MapiTxStatus{}
-	err = json.Unmarshal(body, txStatus)
-	if err != nil {
-		log.Println("Error 999", err)
-		return 0, err
-	}
-
-	pl := &MapiStatusPayload{}
-	err = json.Unmarshal([]byte(txStatus.Payload), pl)
-	if err != nil {
-		log.Println("Error 999", err)
-		return 0, err
-	}
-
-	return pl.BlockHeight, nil
-}

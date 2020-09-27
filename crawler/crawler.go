@@ -43,6 +43,7 @@ func SyncBlocks(height int) (newBlock int) {
 
 // Crawl loops over the new bap transactions since the given block height
 func Crawl(query []byte, height int) (newHeight int) {
+
 	client := http.Client{}
 	// Create a timestamped query by applying the "$gt" (greater then) operator with the height
 	njson, _ := sjson.Set(string(query), `q.find.blk\.i.$gt`, height)
@@ -114,7 +115,6 @@ func Crawl(query []byte, height int) (newHeight int) {
 
 		// Write to DB
 		_, err = conn.UpsertOne(string(collectionName), filter, bsonData)
-
 	}
 
 	// Print tx line to stdout
@@ -122,5 +122,5 @@ func Crawl(query []byte, height int) (newHeight int) {
 		fmt.Println(err)
 	}
 
-	return newHeight
+	return
 }

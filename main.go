@@ -1,35 +1,39 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/tonicpow/bap-planaria-go/config"
 	"github.com/tonicpow/bap-planaria-go/crawler"
-	"github.com/tonicpow/bap-planaria-go/persist"
 	"github.com/tonicpow/bap-planaria-go/router"
 	"github.com/tonicpow/bap-planaria-go/state"
 )
 
 func syncWorker(currentBlock int) {
+	if currentBlock != config.FromBlock {
+		time.Sleep(30 * time.Second)
+	}
+
 	// crawl
 	newBlock := crawler.SyncBlocks(currentBlock)
-	state.SyncState(currentBlock)
 
-	time.Sleep(30 * time.Second)
+	// if we've indexed some new txs to bring into the state
+	if newBlock > currentBlock {
+		newBlock = state.SyncState(currentBlock)
+	} else {
+		fmt.Println("everything up-to-date")
+	}
+
 	go syncWorker(newBlock)
 }
 
 func main() {
-	var currentBlock int
-
-	// load persisted block to continue from
-	if err := persist.Load("./block.tmp", &currentBlock); err != nil {
-		log.Println(err, "Starting from default block.")
-	}
 
 	// blocks only the first time, then runs as a go func
-	syncWorker(currentBlock)
+	syncWorker(config.FromBlock)
 
 	// First time through we start the server once synchronized
 	startServer()
