@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rohenaz/go-bap"
+	"github.com/tonicpow/bap-planaria-go/crawler"
 	"github.com/tonicpow/bap-planaria-go/persist"
 	"github.com/tonicpow/bap-planaria-go/router"
 	"github.com/tonicpow/bap-planaria-go/state"
@@ -26,7 +27,10 @@ func main() {
 		stateBlock = currentBlock
 	}
 
-	then := time.Now()
+	// Setup crawl timer
+	crawlStart := time.Now()
+
+	// Bitbus Query
 	q := []byte(`
 	{
 	  "q": {
@@ -35,20 +39,22 @@ func main() {
 	  }
 	}`)
 
-	// crawl will mutate currentBlock as it crawls forward from the given block height
-	crawler.crawl(q, currentBlock)
+	// Crawl will mutate currentBlock
+	crawler.Crawl(q, currentBlock)
 
-	diff := time.Now().Sub(then).Seconds()
+	// Crawl complete
+	diff := time.Now().Sub(crawlStart).Seconds()
 	fmt.Printf("Bitbus sync complete in %fs\nBlock height: %d\nSync height: %d\n", diff, currentBlock, stateBlock)
 
-	then = time.Now()
+	// Set up timer for state sync
+	stateStart := time.Now()
 
 	// if we've indexed some new txs to bring into the state
 	if currentBlock > stateBlock {
 
 		// set tru to trust planaria, false to verify every tx with a miner
 		state.Build(stateBlock, true)
-		diff = time.Now().Sub(then).Seconds()
+		diff = time.Now().Sub(stateStart).Seconds()
 		fmt.Printf("State sync complete in %fs\n", diff)
 	} else {
 		fmt.Println("everything up-to-date")

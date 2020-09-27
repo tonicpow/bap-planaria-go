@@ -18,7 +18,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func crawl(query []byte, height int) {
+// Crawl loops over the new bap transactions since the given block height
+func Crawl(query []byte, height int) {
 	client := http.Client{}
 	// Create a timestamped query by applying the "$gt" (greater then) operator with the height
 	njson, _ := sjson.Set(string(query), `q.find.blk\.i.$gt`, height)
