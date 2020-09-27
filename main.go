@@ -8,12 +8,13 @@ import (
 
 	"github.com/tonicpow/bap-planaria-go/config"
 	"github.com/tonicpow/bap-planaria-go/crawler"
+	"github.com/tonicpow/bap-planaria-go/persist"
 	"github.com/tonicpow/bap-planaria-go/router"
 	"github.com/tonicpow/bap-planaria-go/state"
 )
 
-func syncWorker(currentBlock int) {
-	if currentBlock != config.FromBlock {
+func syncWorker(currentBlock int, wait bool) {
+	if wait {
 		time.Sleep(30 * time.Second)
 	}
 
@@ -27,13 +28,21 @@ func syncWorker(currentBlock int) {
 		fmt.Println("everything up-to-date")
 	}
 
-	go syncWorker(newBlock)
+	go syncWorker(newBlock, true)
 }
 
 func main() {
 
+	var currentBlock int
+
+	// load persisted block to continue from
+	if err := persist.Load("./block.tmp", &currentBlock); err != nil {
+		log.Println(err, "Starting from default block.")
+		currentBlock = config.FromBlock
+	}
+
 	// blocks only the first time, then runs as a go func
-	syncWorker(config.FromBlock)
+	syncWorker(currentBlock, false)
 
 	// First time through we start the server once synchronized
 	startServer()
