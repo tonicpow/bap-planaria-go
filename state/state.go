@@ -67,6 +67,9 @@ func validateIDTx(idTx bmap.Tx) (valid bool) {
 // Build starts the state builder
 func build(fromBlock int, trust bool) (stateBlock int) {
 
+	// if there are no txs to process, return the same thing we sent in
+	stateBlock = fromBlock
+
 	var numPerPass int = 100
 	// Query x records at a time in a loop
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
