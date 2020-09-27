@@ -13,6 +13,7 @@ import (
 	"github.com/rohenaz/go-bap"
 	"github.com/rohenaz/go-bitcoin"
 	"github.com/rohenaz/go-bmap"
+	"github.com/tonicpow/bap-planaria-go/config"
 	"github.com/tonicpow/bap-planaria-go/database"
 	"github.com/tonicpow/bap-planaria-go/identity"
 	"github.com/tonicpow/bap-planaria-go/persist"
@@ -64,7 +65,7 @@ func validateIDTx(idTx bmap.Tx) (valid bool) {
 }
 
 // Build starts the state builder
-func Build(fromBlock int, trust bool) {
+func build(fromBlock int, trust bool) (stateBlock int) {
 
 	var numPerPass int = 100
 	// Query x records at a time in a loop
@@ -171,6 +172,7 @@ func Build(fromBlock int, trust bool) {
 
 			// persist our progress to disk
 			SaveProgress(idTx.Blk.I)
+			return int(idTx.Blk.I)
 		}
 	}
 
@@ -245,6 +247,27 @@ func Build(fromBlock int, trust bool) {
 			}
 		}
 	}
+	return
+}
+
+func SyncState(currentBlock int) (newBlock int) {
+	// Set up timer for state sync
+	stateStart := time.Now()
+
+	// if we've indexed some new txs to bring into the state
+	if currentBlock > newBlock {
+		// set tru to trust planaria, false to verify every tx with a miner
+		stateBlock := build(newBlock, config.TrustPlanaria)
+		diff := time.Now().Sub(stateStart).Seconds()
+		fmt.Printf("State sync complete in %fs\nSync height: %d\n", diff, stateBlock)
+	} else {
+		fmt.Println("everything up-to-date")
+	}
+
+	// update the state block clounter
+	SaveProgress(uint32(newBlock))
+
+	return
 }
 
 type MapiTxStatus struct {
@@ -288,7 +311,7 @@ type MapiStatusPayload struct {
 func verifyExistence(tx string) (uint32, error) {
 
 	// check w a miner that it is in fact in the blockchain
-	url := "https://www.ddpurse.com/openapi/mapi/tx/" + tx // "https://merchantapi.taal.com/mapi/tx/" + tx
+	url := config.MinerAPIEndpoint + tx // "https://merchantapi.taal.com/mapi/tx/" + tx
 	payload := strings.NewReader("")
 
 	// resp, err := http.Get(url)
@@ -300,7 +323,7 @@ func verifyExistence(tx string) (uint32, error) {
 		return 0, err
 	}
 
-	request.Header.Add("token", "561b756d12572020ea9a104c3441b71790acbbce95a6ddbf7e0630971af9424b")
+	request.Header.Add("token", config.MempoolToken)
 	request.Header.Add("Content-Type", "application/json")
 
 	var res *http.Response

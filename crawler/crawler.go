@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/rohenaz/go-bap"
 	"github.com/rohenaz/go-bmap"
 	"github.com/rohenaz/go-bob"
 	"github.com/tidwall/sjson"
@@ -18,8 +19,30 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+func SyncBlocks(height int) (newBlock int) {
+	// Setup crawl timer
+	crawlStart := time.Now()
+
+	// Bitbus Query
+	q := []byte(`
+		{
+			"q": {
+				"find": { "out.tape.cell.s": "` + bap.Prefix + `" },
+				"sort": { "blk.i": 1 }
+			}
+		}`)
+
+	// Crawl will mutate currentBlock
+	newBlock = Crawl(q, height)
+
+	// Crawl complete
+	diff := time.Now().Sub(crawlStart).Seconds()
+	fmt.Printf("Bitbus sync complete in %fs\nBlock height: %d\n", diff, height)
+	return
+}
+
 // Crawl loops over the new bap transactions since the given block height
-func Crawl(query []byte, height int) {
+func Crawl(query []byte, height int) (newHeight int) {
 	client := http.Client{}
 	// Create a timestamped query by applying the "$gt" (greater then) operator with the height
 	njson, _ := sjson.Set(string(query), `q.find.blk\.i.$gt`, height)
@@ -58,7 +81,7 @@ func Crawl(query []byte, height int) {
 		}
 
 		if int(bobData.Blk.I) > height {
-			height = int(bobData.Blk.I)
+			newHeight = int(bobData.Blk.I)
 		}
 		// Transform from BOB to BMAP
 		bmapData := bmap.New()
@@ -98,4 +121,6 @@ func Crawl(query []byte, height int) {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	return newHeight
 }
