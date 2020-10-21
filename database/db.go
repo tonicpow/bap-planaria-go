@@ -41,7 +41,7 @@ func Connect(ctx context.Context) (*Connection, error) {
 func (c *Connection) GetIdentityStateFromAddress(address string) (*identity.State, error) {
 	collection := c.Database(databaseName).Collection("identityState")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	filter := bson.M{"IDHistory.address": bson.M{"$eq": address}}
+	filter := bson.M{"history.address": bson.M{"$eq": address}}
 	opts := options.FindOne()
 	document := collection.FindOne(ctx, filter, opts)
 
@@ -75,7 +75,7 @@ func (c *Connection) GetIdentityStateByTxID(txid string) (*identity.State, error
 func (c *Connection) GetIdentityState(idKey string) (*identity.State, error) {
 	collection := c.Database(databaseName).Collection("identityState")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	filter := bson.M{"IDKey": bson.M{"$eq": idKey}}
+	filter := bson.M{"_id": bson.M{"$eq": idKey}}
 	opts := options.FindOne()
 	document := collection.FindOne(ctx, filter, opts)
 
@@ -92,7 +92,7 @@ func (c *Connection) GetIdentityState(idKey string) (*identity.State, error) {
 func (c *Connection) GetAttestationState(urnHash string) (*attestation.State, error) {
 	collection := c.Database(databaseName).Collection("attestationState")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	filter := bson.M{"urnHash": bson.M{"$eq": urnHash}}
+	filter := bson.M{"_id": urnHash}
 	opts := options.FindOne()
 	document := collection.FindOne(ctx, filter, opts)
 
@@ -183,6 +183,21 @@ func (c *Connection) InsertOne(collectionName string, data bson.M) (interface{},
 	return res.InsertedID, nil
 }
 
+// Update connects and updates the provided data into the provided collection
+// NOTE: This function can update multiple records if the filter is not restrictive
+func (c *Connection) Update(collectionName string, filter interface{}, update bson.M) (interface{}, error) {
+
+	collection := c.Database(databaseName).Collection(collectionName)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	res, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return 0, err
+	}
+    log.Println("res", res)
+
+	return res, nil
+}
+
 // UpsertOne connects and updates the provided data into the provided collection given the filter
 func (c *Connection) UpsertOne(collectionName string, filter interface{}, data bson.M) (interface{}, error) {
 
@@ -191,6 +206,21 @@ func (c *Connection) UpsertOne(collectionName string, filter interface{}, data b
 	opts := options.Update().SetUpsert(true)
 
 	update := bson.M{"$set": data}
+
+	res, err := collection.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.UpsertedID, nil
+}
+
+// Upsert connects and updates the provided data into the provided collection given the filter
+func (c *Connection) Upsert(collectionName string, filter interface{}, update bson.M) (interface{}, error) {
+
+	collection := c.Database(databaseName).Collection(collectionName)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	opts := options.Update().SetUpsert(true)
 
 	res, err := collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {

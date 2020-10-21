@@ -92,6 +92,7 @@ func Crawl(query []byte, height int) (newHeight int) {
 		}
 
 		bsonData := bson.M{
+		    "_id": bobData.Tx.H,
 			"tx":  bobData.Tx,
 			"in":  bobData.In,
 			"out": bobData.Out,

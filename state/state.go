@@ -47,10 +47,16 @@ type Attestation struct {
 // SaveProgress persists the block height to ./block.tmp
 func SaveProgress(height uint32) {
 	if height > 0 {
-		// persist our progress to disk
-		if err := persist.Save("./block.tmp", height); err != nil {
-			log.Fatalln(err)
-		}
+	    if (config.UseDBForState) {
+            // persist our progress to the database
+            // TODO save height to _state collection
+            // { _id: 'height', value: height }
+	    } else {
+            // persist our progress to disk
+            if err := persist.Save("./block.tmp", height); err != nil {
+                log.Fatalln(err)
+            }
+	    }
 	}
 
 }
@@ -124,34 +130,52 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 
 			// Check if ID key exists
 			idState, _ := conn.GetIdentityState(idTx.BAP.IDKey)
-
-			updatedIdentity := bson.M{
-				"IDControlAddress": idTx.AIP.Address,
-				"IDKey":            idTx.BAP.IDKey,
-				"IDHistory":        idHistory,
-				"Tx":               idTx.Tx,
-			}
-
-			// If its a record for the same ID key (excluding the very same tx)
-			if idState != nil && idState.IDKey == idTx.BAP.IDKey && idState.Tx.H != idTx.Tx.H && len(idState.IDHistory) > 0 {
-
+            if idState == nil {
+                // This has to be the first time this ID is seen on-chain, otherwise the
+                // IDControlAddress will not be correct
+                conn.InsertOne("identityState", bson.M{
+                    "_id":              idTx.BAP.IDKey,
+                    "controlAddress": idTx.AIP.Address,
+                    "currentAddress": idTx.BAP.Address,
+                    "idKey":            idTx.BAP.IDKey,
+                    "history":        append(idHistory, identity.Identity{
+                                            Tx:        idTx.Tx.H,
+                                            Address:   idTx.BAP.Address,
+                                            FirstSeen: idTx.Blk.I,
+                                            LastSeen:  0,
+                                        }),
+                })
+            } else {
 				// update identity history
 
 				// TODO: validate if this is a valid chain of signatures
 
 				// Get prev address
+				// TODO it might be better to search for the last array element with LastSeen = 0 ??
 				prevAddress := idState.IDHistory[len(idState.IDHistory)-1].Address
-				if idTx.AIP.Address == idState.IDControlAddress {
+				if idTx.AIP.Address == prevAddress {
 					// - when a key is replaced it is signed with the previous address/key
-					updatedIdentity["IDHistory"] = append(idHistory, identity.Identity{
-						Address:   idState.IDControlAddress,
-						FirstSeen: idState.IDHistory[len(idState.IDHistory)-1].FirstSeen,
-						LastSeen:  idTx.Blk.I,
-					})
 
-					updatedIdentity["IDControlAddress"] = idTx.BAP.Address
+                    // TODO We should try to do this in 1 transaction
+                    filter := bson.M{"_id": idState.IDKey}
+                    conn.Update("identityState", filter, bson.M{
+                        "$addToSet": identity.Identity{
+                            Tx:        idTx.Tx.H,
+                            Address:   idTx.BAP.Address,
+                            FirstSeen: idTx.Blk.I,
+                            LastSeen:  0,
+                        },
+                    })
+
+                    filterSet := bson.M{"_id": idState.IDKey, "IDHistory.Address": prevAddress}
+                    conn.Update("identityState", filterSet, bson.M{
+                        "$set": bson.M{
+                            "currentAddress": idTx.BAP.Address,
+                            "history.$.lastSeen": idTx.Blk.I,
+                        },
+                    })
 				} else {
-					err = fmt.Errorf("Must use control address to change an identity %s %s %+v", prevAddress, idTx.AIP.Address, idState)
+					err = fmt.Errorf("Must use previous address to change an identity address: %s %s %+v", prevAddress, idTx.AIP.Address, idState)
 					// Upsert as identity state document
 					filter := bson.M{"Tx.h": bson.M{"$eq": idTx.Tx.H}}
 					conn.UpsertOne("stateErrors", filter, bson.M{
@@ -159,24 +183,11 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 						"Error": err.Error(),
 					})
 				}
-
-			} else {
-				// Brand new identity key
-				updatedIdentity["IDHistory"] = append(idHistory, identity.Identity{
-					Address:   idTx.BAP.Address,
-					FirstSeen: idTx.Blk.I,
-					LastSeen:  0,
-				})
 			}
-
-			// Upsert as identity state document
-			filter := bson.M{"IDKey": bson.M{"$eq": idTx.BAP.IDKey}}
-			conn.UpsertOne("identityState", filter, updatedIdentity)
 
 			// persist our progress to disk
 			SaveProgress(idTx.Blk.I)
 			stateBlock = int(idTx.Blk.I)
-
 		}
 	}
 
@@ -208,6 +219,7 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 					continue
 				}
 
+                // TODO: look for the IDHistory element with the address, not 0
 				firstSeen := int(idState.IDHistory[0].FirstSeen)
 				lastSeen := int(idState.IDHistory[0].LastSeen)
 
@@ -215,11 +227,22 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 				if int(tx.Blk.I) > firstSeen && int(tx.Blk.I) > lastSeen {
 					// log.Println("Valid ID state!", idState)
 
-					conn.UpsertOne("attestationState", bson.M{"Tx.h": tx.Tx.H}, bson.M{
-						"urnHash":  tx.BAP.URNHash,
-						"Tx":       tx.Tx,
-						"sequence": tx.BAP.Sequence,
-						"Blk":      tx.Blk,
+					conn.Upsert("attestationState", bson.M{
+					    "_id": tx.BAP.URNHash,
+					}, bson.M{
+                        "$setOnInsert": bson.M{
+                            "_id":      tx.BAP.URNHash,
+                        },
+                        "$addToSet": bson.M{
+                            "attestations": bson.M{
+                                "idKey":     idState.IDKey,
+                                "address":   tx.AIP.Address,
+                                "signature": tx.AIP.Signature,
+                                "tx":        tx.Tx.H,
+                                "sequence":  tx.BAP.Sequence,
+                                "blk":       tx.Blk.I,
+                            },
+                        },
 					})
 				}
 
@@ -243,11 +266,13 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 				log.Println("Error revoking attestation", err)
 				continue
 			}
+
+			// TODO find the attestation for the idKey
+			// attestation := attestationState.attestations.find(...)
 			// check its block height against this
 			if tx.Blk.I > attestationState.Blk.I {
 				// revoke is newer
 				log.Println("Revoke is newer")
-
 			}
 		}
 	}
