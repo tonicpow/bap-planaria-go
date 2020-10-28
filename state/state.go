@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/rohenaz/go-bap"
-	"github.com/rohenaz/go-bitcoin"
+	"github.com/bitcoinschema/go-bap"
+	"github.com/bitcoinschema/go-bitcoin"
 	"github.com/rohenaz/go-bmap"
 	"github.com/tonicpow/bap-planaria-go/config"
 	"github.com/tonicpow/bap-planaria-go/database"
@@ -47,16 +47,16 @@ type Attestation struct {
 // SaveProgress persists the block height to ./block.tmp
 func SaveProgress(height uint32) {
 	if height > 0 {
-	    if (config.UseDBForState) {
-            // persist our progress to the database
-            // TODO save height to _state collection
-            // { _id: 'height', value: height }
-	    } else {
-            // persist our progress to disk
-            if err := persist.Save("./block.tmp", height); err != nil {
-                log.Fatalln(err)
-            }
-	    }
+		if config.UseDBForState {
+			// persist our progress to the database
+			// TODO save height to _state collection
+			// { _id: 'height', value: height }
+		} else {
+			// persist our progress to disk
+			if err := persist.Save("./block.tmp", height); err != nil {
+				log.Fatalln(err)
+			}
+		}
 	}
 
 }
@@ -67,7 +67,7 @@ func validateIDTx(idTx bmap.Tx) (valid bool) {
 	addressValid, _ := bitcoin.ValidA58([]byte(idTx.BAP.Address))
 
 	// Make sude Id Key is a valid length
-	return len(idTx.BAP.IDKey) == 64 && idTx.AIP.Validate() && addressValid
+	return len(idTx.BAP.IDKey) == 64 && idTx.AIP.Validate("") && addressValid
 }
 
 // Build starts the state builder
@@ -130,22 +130,22 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 
 			// Check if ID key exists
 			idState, _ := conn.GetIdentityState(idTx.BAP.IDKey)
-            if idState == nil {
-                // This has to be the first time this ID is seen on-chain, otherwise the
-                // IDControlAddress will not be correct
-                conn.InsertOne("identityState", bson.M{
-                    "_id":              idTx.BAP.IDKey,
-                    "controlAddress": idTx.AIP.Address,
-                    "currentAddress": idTx.BAP.Address,
-                    "idKey":            idTx.BAP.IDKey,
-                    "history":        append(idHistory, identity.Identity{
-                                            Tx:        idTx.Tx.H,
-                                            Address:   idTx.BAP.Address,
-                                            FirstSeen: idTx.Blk.I,
-                                            LastSeen:  0,
-                                        }),
-                })
-            } else {
+			if idState == nil {
+				// This has to be the first time this ID is seen on-chain, otherwise the
+				// IDControlAddress will not be correct
+				conn.InsertOne("identityState", bson.M{
+					"_id":            idTx.BAP.IDKey,
+					"controlAddress": idTx.AIP.Address,
+					"currentAddress": idTx.BAP.Address,
+					"idKey":          idTx.BAP.IDKey,
+					"history": append(idHistory, identity.Identity{
+						Tx:        idTx.Tx.H,
+						Address:   idTx.BAP.Address,
+						FirstSeen: idTx.Blk.I,
+						LastSeen:  0,
+					}),
+				})
+			} else {
 				// update identity history
 
 				// TODO: validate if this is a valid chain of signatures
@@ -156,24 +156,24 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 				if idTx.AIP.Address == prevAddress {
 					// - when a key is replaced it is signed with the previous address/key
 
-                    // TODO We should try to do this in 1 transaction
-                    filter := bson.M{"_id": idState.IDKey}
-                    conn.Update("identityState", filter, bson.M{
-                        "$addToSet": identity.Identity{
-                            Tx:        idTx.Tx.H,
-                            Address:   idTx.BAP.Address,
-                            FirstSeen: idTx.Blk.I,
-                            LastSeen:  0,
-                        },
-                    })
+					// TODO We should try to do this in 1 transaction
+					filter := bson.M{"_id": idState.IDKey}
+					conn.Update("identityState", filter, bson.M{
+						"$addToSet": identity.Identity{
+							Tx:        idTx.Tx.H,
+							Address:   idTx.BAP.Address,
+							FirstSeen: idTx.Blk.I,
+							LastSeen:  0,
+						},
+					})
 
-                    filterSet := bson.M{"_id": idState.IDKey, "IDHistory.Address": prevAddress}
-                    conn.Update("identityState", filterSet, bson.M{
-                        "$set": bson.M{
-                            "currentAddress": idTx.BAP.Address,
-                            "history.$.lastSeen": idTx.Blk.I,
-                        },
-                    })
+					filterSet := bson.M{"_id": idState.IDKey, "IDHistory.Address": prevAddress}
+					conn.Update("identityState", filterSet, bson.M{
+						"$set": bson.M{
+							"currentAddress":     idTx.BAP.Address,
+							"history.$.lastSeen": idTx.Blk.I,
+						},
+					})
 				} else {
 					err = fmt.Errorf("Must use previous address to change an identity address: %s %s %+v", prevAddress, idTx.AIP.Address, idState)
 					// Upsert as identity state document
@@ -209,7 +209,7 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 		// var identities []Identity
 		for _, tx := range attestationTxs {
 			// log.Printf("Got Doc! %+v %s", tx.BAP, identities)
-			if tx.AIP.Validate() {
+			if tx.AIP.Validate("") {
 
 				// 1. Look up related Identity (find an identity with the AIP address in history)
 				// log.Printf("Find id %+v", tx.AIP.Address)
@@ -219,7 +219,7 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 					continue
 				}
 
-                // TODO: look for the IDHistory element with the address, not 0
+				// TODO: look for the IDHistory element with the address, not 0
 				firstSeen := int(idState.IDHistory[0].FirstSeen)
 				lastSeen := int(idState.IDHistory[0].LastSeen)
 
@@ -228,21 +228,21 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 					// log.Println("Valid ID state!", idState)
 
 					conn.Upsert("attestationState", bson.M{
-					    "_id": tx.BAP.URNHash,
+						"_id": tx.BAP.URNHash,
 					}, bson.M{
-                        "$setOnInsert": bson.M{
-                            "_id":      tx.BAP.URNHash,
-                        },
-                        "$addToSet": bson.M{
-                            "attestations": bson.M{
-                                "idKey":     idState.IDKey,
-                                "address":   tx.AIP.Address,
-                                "signature": tx.AIP.Signature,
-                                "tx":        tx.Tx.H,
-                                "sequence":  tx.BAP.Sequence,
-                                "blk":       tx.Blk.I,
-                            },
-                        },
+						"$setOnInsert": bson.M{
+							"_id": tx.BAP.URNHash,
+						},
+						"$addToSet": bson.M{
+							"attestations": bson.M{
+								"idKey":     idState.IDKey,
+								"address":   tx.AIP.Address,
+								"signature": tx.AIP.Signature,
+								"tx":        tx.Tx.H,
+								"sequence":  tx.BAP.Sequence,
+								"blk":       tx.Blk.I,
+							},
+						},
 					})
 				}
 

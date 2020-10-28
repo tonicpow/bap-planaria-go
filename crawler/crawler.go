@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/rohenaz/go-bap"
+	"github.com/bitcoinschema/go-bap"
 	"github.com/rohenaz/go-bmap"
 	"github.com/rohenaz/go-bob"
 	"github.com/tidwall/sjson"
@@ -92,7 +92,7 @@ func Crawl(query []byte, height int) (newHeight int) {
 		}
 
 		bsonData := bson.M{
-		    "_id": bobData.Tx.H,
+			"_id": bobData.Tx.H,
 			"tx":  bobData.Tx,
 			"in":  bobData.In,
 			"out": bobData.Out,
