@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/bitcoinschema/go-bap"
-	"github.com/rohenaz/go-bmap"
-	"github.com/rohenaz/go-bob"
+	"github.com/bitcoinschema/go-bmap"
+	"github.com/bitcoinschema/go-bob"
 	"github.com/tidwall/sjson"
 	"github.com/tonicpow/bap-planaria-go/database"
 	"go.mongodb.org/mongo-driver/bson"
@@ -74,8 +74,7 @@ func Crawl(query []byte, height int) (newHeight int) {
 			break
 		}
 
-		bobData := bob.New()
-		err = bobData.FromBytes(line)
+		bobData, err := bob.NewFromBytes(line)
 		if err != nil {
 			fmt.Println("Error: 1", err)
 			return

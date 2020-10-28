@@ -8,7 +8,7 @@ import (
 
 	"github.com/bitcoinschema/go-bap"
 	"github.com/bitcoinschema/go-bitcoin"
-	"github.com/rohenaz/go-bmap"
+	"github.com/bitcoinschema/go-bmap"
 	"github.com/tonicpow/bap-planaria-go/config"
 	"github.com/tonicpow/bap-planaria-go/database"
 	"github.com/tonicpow/bap-planaria-go/identity"
@@ -67,7 +67,7 @@ func validateIDTx(idTx bmap.Tx) (valid bool) {
 	addressValid, _ := bitcoin.ValidA58([]byte(idTx.BAP.Address))
 
 	// Make sude Id Key is a valid length
-	return len(idTx.BAP.IDKey) == 64 && idTx.AIP.Validate("") && addressValid
+	return len(idTx.BAP.IDKey) == 64 && idTx.AIP.Validate() && addressValid
 }
 
 // Build starts the state builder
@@ -209,7 +209,7 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 		// var identities []Identity
 		for _, tx := range attestationTxs {
 			// log.Printf("Got Doc! %+v %s", tx.BAP, identities)
-			if tx.AIP.Validate("") {
+			if tx.AIP.Validate() {
 
 				// 1. Look up related Identity (find an identity with the AIP address in history)
 				// log.Printf("Find id %+v", tx.AIP.Address)

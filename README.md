@@ -6,10 +6,10 @@ A Planaria-like indexer and transaction processor. Uses Bitbus to ingest all Bit
 
 - Mongo DB
 - Bitbus - Get a token [here](https://token.planaria.network/)
-- [BMAP](https://github.com/rohenaz/go-bmap) - BOB Transaction parser
-  - [AIP](https://github.com/rohenaz/go-aip) - Author Identity Protocol library
-  - [BAP](https://github.com/rohenaz/go-bap) - Bitcoin Attestation Protocol library
-  - [MAP](https://github.com/rohenaz/go-map) - Magic Attribute Protocol library
+- [BMAP](https://github.com/bitcoinschema/go-bmap) - BOB Transaction parser
+  - [AIP](https://github.com/bitcoinschema/go-aip) - Author Identity Protocol library
+  - [BAP](https://github.com/bitcoinschema/go-bap) - Bitcoin Attestation Protocol library
+  - [MAP](https://github.com/bitcoinschema/go-map) - Magic Attribute Protocol library
 
 ## Installation
 

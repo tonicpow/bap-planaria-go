@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/rohenaz/go-bmap"
+	"github.com/bitcoinschema/go-bmap"
 	"github.com/tonicpow/bap-planaria-go/attestation"
 	"github.com/tonicpow/bap-planaria-go/identity"
 	"go.mongodb.org/mongo-driver/bson"
@@ -193,7 +193,7 @@ func (c *Connection) Update(collectionName string, filter interface{}, update bs
 	if err != nil {
 		return 0, err
 	}
-    log.Println("res", res)
+	log.Println("res", res)
 
 	return res, nil
 }
