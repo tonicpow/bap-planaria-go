@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/bitcoinschema/go-aip"
 	"github.com/bitcoinschema/go-bap"
 	"github.com/bitcoinschema/go-bitcoin"
 	"github.com/bitcoinschema/go-bmap"
@@ -227,6 +228,12 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 				if int(tx.Blk.I) > firstSeen && int(tx.Blk.I) > lastSeen {
 					// log.Println("Valid ID state!", idState)
 
+					var addr string
+					if tx.AIP.Algorithm == aip.Paymail {
+						addr = tx.AIP.AlgorithmSigningComponent
+					} else if tx.AIP.Algorithm == aip.BitcoinECDSA {
+						addr = tx.BAP.Address
+					}
 					conn.Upsert("attestationState", bson.M{
 						"_id": tx.BAP.URNHash,
 					}, bson.M{
@@ -236,7 +243,7 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 						"$addToSet": bson.M{
 							"attestations": bson.M{
 								"idKey":     idState.IDKey,
-								"address":   tx.AIP.AlgorithmSigningComponent,
+								"address":   addr,
 								"signature": tx.AIP.Signature,
 								"tx":        tx.Tx.H,
 								"sequence":  tx.BAP.Sequence,
