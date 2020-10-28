@@ -4,9 +4,9 @@ go 1.14
 
 require (
 	github.com/aws/aws-sdk-go v1.35.17 // indirect
-	github.com/bitcoinschema/go-bap v0.1.9
+	github.com/bitcoinschema/go-bap v0.1.10
 	github.com/bitcoinschema/go-bitcoin v0.2.7
-	github.com/bitcoinschema/go-bmap v0.0.9
+	github.com/bitcoinschema/go-bmap v0.0.10
 	github.com/bitcoinschema/go-bob v0.0.5
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9
 	github.com/golang/snappy v0.0.2 // indirect

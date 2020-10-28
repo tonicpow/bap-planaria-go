@@ -135,7 +135,7 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 				// IDControlAddress will not be correct
 				conn.InsertOne("identityState", bson.M{
 					"_id":            idTx.BAP.IDKey,
-					"controlAddress": idTx.AIP.Address,
+					"controlAddress": idTx.AIP.AlgorithmSigningComponent,
 					"currentAddress": idTx.BAP.Address,
 					"idKey":          idTx.BAP.IDKey,
 					"history": append(idHistory, identity.Identity{
@@ -153,7 +153,7 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 				// Get prev address
 				// TODO it might be better to search for the last array element with LastSeen = 0 ??
 				prevAddress := idState.IDHistory[len(idState.IDHistory)-1].Address
-				if idTx.AIP.Address == prevAddress {
+				if idTx.AIP.AlgorithmSigningComponent == prevAddress {
 					// - when a key is replaced it is signed with the previous address/key
 
 					// TODO We should try to do this in 1 transaction
@@ -175,7 +175,7 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 						},
 					})
 				} else {
-					err = fmt.Errorf("Must use previous address to change an identity address: %s %s %+v", prevAddress, idTx.AIP.Address, idState)
+					err = fmt.Errorf("Must use previous address to change an identity address: %s %s %+v", prevAddress, idTx.AIP.AlgorithmSigningComponent, idState)
 					// Upsert as identity state document
 					filter := bson.M{"Tx.h": bson.M{"$eq": idTx.Tx.H}}
 					conn.UpsertOne("stateErrors", filter, bson.M{
@@ -213,9 +213,9 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 
 				// 1. Look up related Identity (find an identity with the AIP address in history)
 				// log.Printf("Find id %+v", tx.AIP.Address)
-				idState, err := conn.GetIdentityStateFromAddress(tx.AIP.Address)
+				idState, err := conn.GetIdentityStateFromAddress(tx.AIP.AlgorithmSigningComponent)
 				if err != nil {
-					log.Println("No identity found for address", tx.AIP.Address, tx.Tx.H)
+					log.Println("No identity found for address", tx.AIP.AlgorithmSigningComponent, tx.Tx.H)
 					continue
 				}
 
@@ -236,7 +236,7 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 						"$addToSet": bson.M{
 							"attestations": bson.M{
 								"idKey":     idState.IDKey,
-								"address":   tx.AIP.Address,
+								"address":   tx.AIP.AlgorithmSigningComponent,
 								"signature": tx.AIP.Signature,
 								"tx":        tx.Tx.H,
 								"sequence":  tx.BAP.Sequence,
