@@ -1,14 +1,14 @@
 module github.com/tonicpow/bap-planaria-go
 
-go 1.14
+go 1.15
 
 require (
-	github.com/aws/aws-sdk-go v1.35.18 // indirect
+	github.com/aws/aws-sdk-go v1.35.19 // indirect
 	github.com/bitcoinschema/go-aip v0.0.15
 	github.com/bitcoinschema/go-bap v0.1.12
-	github.com/bitcoinschema/go-bitcoin v0.2.10
-	github.com/bitcoinschema/go-bmap v0.0.15
-	github.com/bitcoinschema/go-bob v0.0.8
+	github.com/bitcoinschema/go-bitcoin v0.2.13
+	github.com/bitcoinschema/go-bmap v0.0.16
+	github.com/bitcoinschema/go-bob v0.0.9
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/julienschmidt/httprouter v1.3.0
