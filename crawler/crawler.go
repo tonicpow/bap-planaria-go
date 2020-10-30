@@ -56,7 +56,9 @@ func Crawl(query []byte, height int) (newHeight int) {
 		log.Println(err)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	conn, err := database.Connect(ctx)
 	if err != nil {
@@ -65,16 +67,20 @@ func Crawl(query []byte, height int) (newHeight int) {
 	}
 	fmt.Printf("Initializing from block %d\n", height)
 
-	defer conn.Disconnect(ctx)
+	defer func() {
+		_ = conn.Disconnect(ctx)
+	}()
 	reader := bufio.NewReader(resp.Body)
 	// Split NDJSON stream by line
 	for {
-		line, err := reader.ReadBytes('\n')
+		var line []byte
+		line, err = reader.ReadBytes('\n')
 		if err == io.EOF {
 			break
 		}
 
-		bobData, err := bob.NewFromBytes(line)
+		var bobData *bob.Tx
+		bobData, err = bob.NewFromBytes(line)
 		if err != nil {
 			fmt.Println("Error: 1", err)
 			return
@@ -84,8 +90,8 @@ func Crawl(query []byte, height int) (newHeight int) {
 			newHeight = int(bobData.Blk.I)
 		}
 		// Transform from BOB to BMAP
-		bmapData := bmap.New()
-		err = bmapData.FromBob(bobData)
+		var bmapData *bmap.Tx
+		bmapData, err = bmap.NewFromBob(bobData)
 		if err != nil {
 			log.Println("Error", err)
 		}
