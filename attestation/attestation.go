@@ -6,7 +6,7 @@ import (
 )
 
 type State struct {
-	bap.Data
+	bap.Bap
 	Blk bob.Blk
 	Tx  bob.Tx
 }
