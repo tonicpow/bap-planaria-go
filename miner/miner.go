@@ -1,15 +1,16 @@
 package miner
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/tonicpow/bap-planaria-go/config"
 )
 
+// MapiTxStatus is the mAPI status
 type MapiTxStatus struct {
 	Payload   string `json:"payload"`
 	Signature string `json:"signature"`
@@ -18,6 +19,7 @@ type MapiTxStatus struct {
 	MimeType  string `json:"mimetype"`
 }
 
+// MapiStatusPayload is the payload from mAPI
 type MapiStatusPayload struct {
 	APIVersion            string `json:"apiVersion"`
 	BlockHash             string `json:"blockHash"`
@@ -30,54 +32,47 @@ type MapiStatusPayload struct {
 	TxSecondMempoolExpiry int    `json:"txSecondMempoolExpiry"`
 }
 
-//VerifyExistence checks with a miner that the given txid is in the blockchain
+// VerifyExistence checks with a miner that the given txid is in the blockchain
 func VerifyExistence(tx string) (uint32, error) {
 
-	url := config.MinerAPIEndpoint + tx // "https://merchantapi.taal.com/mapi/tx/" + tx
-	payload := strings.NewReader("")
+	// "https://merchantapi.taal.com/mapi/tx/" + tx
+	url := config.MinerAPIEndpoint + tx
 
-	// resp, err := http.Get(url)
-
-	client := &http.Client{}
-	request, err := http.NewRequest(http.MethodGet, url, payload)
+	// Create a request
+	request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, strings.NewReader(""))
 	if err != nil {
-		log.Println("Error", err)
 		return 0, err
 	}
 
+	// Add headers
 	request.Header.Add("token", config.MempoolToken)
 	request.Header.Add("Content-Type", "application/json")
 
+	// Fire the request
 	var res *http.Response
+	client := &http.Client{}
 	if res, err = client.Do(request); err != nil {
-		log.Println("Error", err)
 		return 0, err
 	}
-
 	defer func() {
 		_ = res.Body.Close()
 	}()
 
+	// read the body
 	var body []byte
-	body, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Println("Error", err)
+	if body, err = ioutil.ReadAll(res.Body); err != nil {
 		return 0, err
 	}
 
-	// fmt.Println("get:\n", string(body))
-
+	// Parse the status
 	txStatus := &MapiTxStatus{}
-	err = json.Unmarshal(body, txStatus)
-	if err != nil {
-		log.Println("Error 999", err)
+	if err = json.Unmarshal(body, txStatus); err != nil {
 		return 0, err
 	}
 
+	// Parse the payload
 	pl := &MapiStatusPayload{}
-	err = json.Unmarshal([]byte(txStatus.Payload), pl)
-	if err != nil {
-		log.Println("Error 999", err)
+	if err = json.Unmarshal([]byte(txStatus.Payload), pl); err != nil {
 		return 0, err
 	}
 

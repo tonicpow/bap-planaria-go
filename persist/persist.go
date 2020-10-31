@@ -19,7 +19,7 @@ var Marshal = func(v interface{}) (io.Reader, error) {
 	return bytes.NewReader(b), nil
 }
 
-// Unmarshal is a function that unmarshals the data from the
+// Unmarshal is a function that unmarshalls the data from the
 // reader into the specified value.
 // By default, it uses the JSON unmarshaller.
 var Unmarshal = func(r io.Reader, v interface{}) error {
@@ -36,9 +36,11 @@ func Save(path string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	r, err := Marshal(v)
-	if err != nil {
+	defer func() {
+		_ = f.Close()
+	}()
+	var r io.Reader
+	if r, err = Marshal(v); err != nil {
 		return err
 	}
 	_, err = io.Copy(f, r)
@@ -55,6 +57,8 @@ func Load(path string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 	return Unmarshal(f, v)
 }

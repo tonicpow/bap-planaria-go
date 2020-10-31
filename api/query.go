@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -14,8 +13,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func bitquery(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func bitQuery(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 
+	// Parse the params
 	params := apirouter.GetParams(req)
 	collection := params.GetString("collection")
 	limit := params.GetInt("limit")
@@ -24,30 +24,38 @@ func bitquery(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 
 	// decode b64 string
 	decoded, err := base64.StdEncoding.DecodeString(find)
+	if err != nil {
+		apirouter.ReturnResponse(w, req, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	q := bson.M{}
-	err = json.Unmarshal(decoded, &q)
-	if err != nil {
-		log.Println(err)
+	if err = json.Unmarshal(decoded, &q); err != nil {
+		apirouter.ReturnResponse(w, req, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// DB connection
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	conn, err := database.Connect(ctx)
-	if err != nil {
-		log.Println(err)
+	// Create a DB connection
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer func() {
+		cancel()
+	}()
+	var conn *database.Connection
+	if conn, err = database.Connect(ctx); err != nil {
+		apirouter.ReturnResponse(w, req, http.StatusExpectationFailed, err.Error())
 		return
 	}
-
-	defer conn.Disconnect(ctx)
+	defer func() {
+		_ = conn.Disconnect(ctx)
+	}()
 
 	// Get matching documents
-	records, err := conn.GetStateDocs(collection, int64(limit), int64(skip), q)
-	if err != nil {
-		log.Println(err)
+	var records []bson.M
+	if records, err = conn.GetStateDocs(collection, int64(limit), int64(skip), q); err != nil {
+		apirouter.ReturnResponse(w, req, http.StatusExpectationFailed, err.Error())
 		return
 	}
 
+	// Return the records
 	apirouter.ReturnResponse(w, req, http.StatusOK, records)
 }

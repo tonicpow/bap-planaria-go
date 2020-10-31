@@ -7,9 +7,6 @@ import (
 // RegisterRoutes register all the package specific routes
 func RegisterRoutes(router *apirouter.Router) {
 
-	// Use the authentication middleware wrapper
-	s := apirouter.NewStack()
-	// Authenticated requests
-	router.HTTPRouter.GET("/find/:collection", router.Request(s.Wrap(bitquery))) // Get an app
-	// Update an existing app
+	// Find
+	router.HTTPRouter.GET("/find/:collection", router.Request(bitQuery))
 }

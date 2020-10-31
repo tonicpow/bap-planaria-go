@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -19,9 +20,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+// SyncBlocks will crawl from a specific height and return the newest block
 func SyncBlocks(height int) (newBlock int) {
-	// Setup crawl timer
-	crawlStart := time.Now()
+
+	// Start tracking total crawl time
+	crawlTimeStart := time.Now()
 
 	// Bitbus Query
 	q := []byte(`
@@ -30,70 +33,102 @@ func SyncBlocks(height int) (newBlock int) {
 				"find": { "out.tape.cell.s": "` + bap.Prefix + `" },
 				"sort": { "blk.i": 1 }
 			}
-		}`)
+		}
+	`)
 
 	// Crawl will mutate currentBlock
 	newBlock = Crawl(q, height)
 
 	// Crawl complete
-	diff := time.Now().Sub(crawlStart).Seconds()
-	fmt.Printf("Bitbus sync complete in %fs\nBlock height: %d\n", diff, height)
+	diff := time.Since(crawlTimeStart).Seconds()
+
+	// Todo: remove logging or use go-logger
+	log.Printf("bitbus sync complete in %fs\nblock height: %d\n", diff, height)
+
 	return
 }
 
 // Crawl loops over the new bap transactions since the given block height
 func Crawl(query []byte, height int) (newHeight int) {
 
+	// Create a new client
 	client := http.Client{}
+	// todo: set defaults
+
 	// Create a timestamped query by applying the "$gt" (greater then) operator with the height
-	njson, _ := sjson.Set(string(query), `q.find.blk\.i.$gt`, height)
-	bjson := []byte(njson)
-	req, err := http.NewRequest("POST", "https://bob.bitbus.network/block", bytes.NewBuffer(bjson))
+	nJSON, _ := sjson.Set(string(query), `q.find.blk\.i.$gt`, height)
+	// todo: test for error?
+
+	bJSON := []byte(nJSON)
+
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		"https://bob.bitbus.network/block",
+		bytes.NewBuffer(bJSON),
+	)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Set the headers
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("token", os.Getenv("PLANARIA_TOKEN"))
-	resp, err := client.Do(req)
-	if err != nil {
+
+	// Fire the request
+	var resp *http.Response
+	if resp, err = client.Do(req); err != nil {
 		log.Println(err)
 		return
 	}
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	conn, err := database.Connect(ctx)
-	if err != nil {
+
+	// Logging
+	log.Printf("initializing from block %d\n", height)
+
+	// Create a DB connection
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer func() {
+		cancel()
+	}()
+	var conn *database.Connection
+	if conn, err = database.Connect(ctx); err != nil {
 		log.Println(err)
 		return
 	}
-	fmt.Printf("Initializing from block %d\n", height)
-
 	defer func() {
 		_ = conn.Disconnect(ctx)
 	}()
+
+	// Read the body
 	reader := bufio.NewReader(resp.Body)
+
 	// Split NDJSON stream by line
 	for {
 		var line []byte
 		line, err = reader.ReadBytes('\n')
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 
 		var bobData *bob.Tx
-		bobData, err = bob.NewFromBytes(line)
-		if err != nil {
-			fmt.Println("Error: 1", err)
+		if bobData, err = bob.NewFromBytes(line); err != nil {
+			fmt.Println(err)
 			return
 		}
 
 		if int(bobData.Blk.I) > height {
 			newHeight = int(bobData.Blk.I)
 		}
+
 		// Transform from BOB to BMAP
 		var bmapData *bmap.Tx
-		bmapData, err = bmap.NewFromBob(bobData)
-		if err != nil {
-			log.Println("Error", err)
+		if bmapData, err = bmap.NewFromBob(bobData); err != nil {
+			log.Println(err)
+			return
 		}
 
 		bsonData := bson.M{
@@ -120,12 +155,10 @@ func Crawl(query []byte, height int) (newHeight int) {
 		filter := bson.M{"tx.h": bson.M{"$eq": bmapData.Tx.H}}
 
 		// Write to DB
-		_, err = conn.UpsertOne(string(collectionName), filter, bsonData)
-	}
-
-	// Print tx line to stdout
-	if err != nil {
-		fmt.Println(err)
+		if _, err = conn.UpsertOne(string(collectionName), filter, bsonData); err != nil {
+			log.Println(err)
+			return
+		}
 	}
 
 	return
