@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -25,7 +24,7 @@ func syncWorker(currentBlock int, wait bool) {
 	if newBlock > currentBlock {
 		newBlock = state.SyncState(currentBlock)
 	} else {
-		fmt.Println("everything up-to-date")
+		log.Println("everything up-to-date")
 	}
 
 	go syncWorker(newBlock, true)
@@ -37,7 +36,7 @@ func main() {
 
 	// load persisted block to continue from
 	if err := persist.Load("./block.tmp", &currentBlock); err != nil {
-		log.Println(err, "Starting from default block.")
+		log.Println(err, "starting from default block")
 		currentBlock = config.FromBlock
 	}
 
