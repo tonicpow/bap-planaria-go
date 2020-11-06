@@ -15,7 +15,7 @@ require (
 	github.com/mrz1836/go-api-router v0.3.5
 	github.com/tidwall/sjson v1.1.2
 	github.com/ugorji/go v1.1.13 // indirect
-	go.mongodb.org/mongo-driver v1.4.2
+	go.mongodb.org/mongo-driver v1.4.3
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
 	golang.org/x/text v0.3.4 // indirect
 )
