@@ -66,14 +66,16 @@ func SaveProgress(height uint32) {
 
 }
 
-func validateIDTx(idTx bmap.Tx) (valid bool) {
+func validateIDTx(idTx bmap.Tx) bool {
 
 	// Make sure BAP Address is a valid Bitcoin address
 	addressValid, _ := bitcoin.ValidA58([]byte(idTx.BAP.Address))
 	// todo: log or return error?
 
+	aipValid, _ := idTx.AIP.Validate()
+
 	// Make sure Id Key is a valid length
-	return len(idTx.BAP.IDKey) == 64 && idTx.AIP.Validate() && addressValid
+	return len(idTx.BAP.IDKey) == 64 && aipValid && addressValid
 }
 
 // Build starts the state builder
@@ -255,7 +257,7 @@ func build(fromBlock int, trust bool) (stateBlock int) {
 		// var identities []Identity
 		for _, tx := range attestationTxs {
 
-			if tx.AIP.Validate() {
+			if aipValid, _ := tx.AIP.Validate(); aipValid {
 
 				// 1. Look up related Identity (find an identity with the AIP address in history)
 				var idState *identity.State
