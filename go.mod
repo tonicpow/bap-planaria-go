@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go v1.35.19 // indirect
 	github.com/bitcoinschema/go-aip v0.0.15
 	github.com/bitcoinschema/go-bap v0.1.12
-	github.com/bitcoinschema/go-bitcoin v0.2.13
+	github.com/bitcoinschema/go-bitcoin v0.2.26
 	github.com/bitcoinschema/go-bmap v0.0.16
 	github.com/bitcoinschema/go-bob v0.0.9
 	github.com/golang/snappy v0.0.2 // indirect
