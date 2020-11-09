@@ -12,8 +12,7 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/klauspost/compress v1.11.2 // indirect
-	github.com/mrz1836/go-api-router v0.3.5
-	github.com/mrz1836/go-parameters v0.2.4 // indirect
+	github.com/mrz1836/go-api-router v0.3.6
 	github.com/tidwall/gjson v1.6.3 // indirect
 	github.com/tidwall/match v1.0.2 // indirect
 	github.com/tidwall/sjson v1.1.2
