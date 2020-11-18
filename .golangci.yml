@@ -338,7 +338,6 @@ linters:
     - bodyclose
     - golint
     - unconvert
-    - dupl
     - maligned
     - misspell
     - dogsled
@@ -355,6 +354,7 @@ linters:
     - gochecknoglobals
     - whitespace
     - wsl
+    - dupl
     - goerr113
     - godot
     - testpackage
@@ -393,6 +393,11 @@ issues:
       text: "weak cryptographic primitive"
       linters:
         - gosec
+
+    # Exclude known gsec issue
+    - linters:
+        - gosec
+      text: "G304:"
 
     # Exclude some staticcheck messages
     - linters:
