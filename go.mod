@@ -4,11 +4,11 @@ go 1.15
 
 require (
 	github.com/aws/aws-sdk-go v1.35.28 // indirect
-	github.com/bitcoinschema/go-aip v0.1.0
+	github.com/bitcoinschema/go-aip v0.1.1
 	github.com/bitcoinschema/go-bap v0.2.0
-	github.com/bitcoinschema/go-bitcoin v0.3.1
+	github.com/bitcoinschema/go-bitcoin v0.3.2
 	github.com/bitcoinschema/go-bmap v0.0.21
-	github.com/bitcoinschema/go-bob v0.1.0
+	github.com/bitcoinschema/go-bob v0.1.1
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/klauspost/compress v1.11.2 // indirect
