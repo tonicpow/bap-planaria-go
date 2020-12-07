@@ -132,10 +132,8 @@ github.com/markbates/safe v1.0.1/go.mod h1:nAqgmRi7cY2nqMc92/bSEeQA+R4OheNU2T1kN
 github.com/matryer/respond v1.0.1 h1:RSG07jdn32pH46t4UO1TnpnKlR/ayIpEa4aiK2f9k1U=
 github.com/matryer/respond v1.0.1/go.mod h1:XHpqRsK4LZQgk6twGA/CrtxNBaayoYiKUqj0Mjkj3Hg=
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
-github.com/mrz1836/go-api-router v0.3.6 h1:ldlQea1NFLlNOwt9DkKNEc/hjLFJaB7s3XSt0q20WpE=
-github.com/mrz1836/go-api-router v0.3.6/go.mod h1:K1U+HPfVXDnf1P8VQn6FaMVdN1z/E8AJRDQoADssma0=
-github.com/mrz1836/go-logger v0.2.1 h1:vkQSM1ZP5cXLvhM6iFWRF0U6q84QQAYOIpqfGze4CWY=
-github.com/mrz1836/go-logger v0.2.1/go.mod h1:ZBIrJoIVMAGJUmf42qvGLCObHasOdYqdbYWn5Dqhb3g=
+github.com/mrz1836/go-api-router v0.3.7 h1:unZ+DWcwP/t86IJXsFpIRAwk4uU8QYFyN2/r/xqL+Sw=
+github.com/mrz1836/go-api-router v0.3.7/go.mod h1:3duL4U+1bqggD+oy/OZ/hmuZKqDN38oQYp/UR5i8zcU=
 github.com/mrz1836/go-logger v0.2.4 h1:2YZ7toHbnTiYuC7n303akMI1x27yncuEdvTxmFbxuxI=
 github.com/mrz1836/go-logger v0.2.4/go.mod h1:sOcErN+MhKJ4McAsToubFoyDgdoKN6hbMqzO9t/CkeI=
 github.com/mrz1836/go-parameters v0.2.4 h1:N4z/EVIDMyCuPQY5rO5HmBNdPIhYcYF4euzJ5JSKcmQ=
