@@ -12,7 +12,7 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/klauspost/compress v1.11.3 // indirect
-	github.com/mrz1836/go-api-router v0.3.7
+	github.com/mrz1836/go-api-router v0.3.8
 	github.com/tidwall/match v1.0.2 // indirect
 	github.com/tidwall/sjson v1.1.3
 	go.mongodb.org/mongo-driver v1.4.4
