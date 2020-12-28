@@ -6,6 +6,8 @@ github.com/aws/aws-sdk-go v1.35.30 h1:ZT+70Tw1ar5U2bL81ZyIvcLorxlD1UoxoIgjsEkism
 github.com/aws/aws-sdk-go v1.35.30/go.mod h1:tlPOdRjfxPBpNIwqDj61rmsnA85v9jc0Ps9+muhnW+k=
 github.com/bitcoinschema/go-aip v0.1.3 h1:MCfTb0n0xqX0nw0qhCA0+i20UOi11tLsFK2oKMkpkjE=
 github.com/bitcoinschema/go-aip v0.1.3/go.mod h1:iSWd61kdcW4nnRq0XqW/3jqc0ZiNCLfSK709sWfmTIk=
+github.com/bitcoinschema/go-aip v0.1.4 h1:wXrRBnzB6pUxIvKbrOpyjjeTOfwCKfKQ3lLTF17mJ88=
+github.com/bitcoinschema/go-aip v0.1.4/go.mod h1:4ev4DOs+MRVJi60q8ra9/3DPmToJJ5+tZhsU0+4snEo=
 github.com/bitcoinschema/go-b v0.0.8 h1:H5kQAwLubqxCUMPNlDlgxA++gqXzRgCjODwOJtzXspY=
 github.com/bitcoinschema/go-b v0.0.8/go.mod h1:MjKj8ZF3D1DZ3O4YcOdtCn8IacgjVH7VRewvgLlzlOU=
 github.com/bitcoinschema/go-bap v0.2.2 h1:bdpbYcQPoX+6PxxSzCee6/qa7KgSq1bvv84I45h0Qn0=

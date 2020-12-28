@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/aws/aws-sdk-go v1.35.30 // indirect
-	github.com/bitcoinschema/go-aip v0.1.3
+	github.com/bitcoinschema/go-aip v0.1.4
 	github.com/bitcoinschema/go-bap v0.2.2
 	github.com/bitcoinschema/go-bitcoin v0.3.12
 	github.com/bitcoinschema/go-bmap v0.0.23
