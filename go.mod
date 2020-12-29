@@ -7,7 +7,7 @@ require (
 	github.com/bitcoinschema/go-aip v0.1.4
 	github.com/bitcoinschema/go-bap v0.2.3
 	github.com/bitcoinschema/go-bitcoin v0.3.12
-	github.com/bitcoinschema/go-bmap v0.0.23
+	github.com/bitcoinschema/go-bmap v0.0.24
 	github.com/bitcoinschema/go-bob v0.1.4
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/julienschmidt/httprouter v1.3.0
