@@ -13,7 +13,7 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/klauspost/compress v1.11.3 // indirect
 	github.com/mrz1836/go-api-router v0.3.8
-	github.com/tidwall/sjson v1.1.4
+	github.com/tidwall/sjson v1.1.5
 	go.mongodb.org/mongo-driver v1.4.5
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
 	golang.org/x/text v0.3.4 // indirect
