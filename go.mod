@@ -3,7 +3,6 @@ module github.com/tonicpow/bap-planaria-go
 go 1.15
 
 require (
-	github.com/aws/aws-sdk-go v1.37.1 // indirect
 	github.com/bitcoinschema/go-aip v0.1.6
 	github.com/bitcoinschema/go-bap v0.2.5
 	github.com/bitcoinschema/go-bitcoin v0.3.17
@@ -14,6 +13,6 @@ require (
 	github.com/klauspost/compress v1.11.7 // indirect
 	github.com/mrz1836/go-api-router v0.3.10
 	github.com/tidwall/sjson v1.1.7
-	go.mongodb.org/mongo-driver v1.5.4
+	go.mongodb.org/mongo-driver v1.6.0
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
 )
