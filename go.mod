@@ -11,7 +11,7 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/klauspost/compress v1.11.7 // indirect
-	github.com/mrz1836/go-api-router v0.3.10
+	github.com/mrz1836/go-api-router v0.3.11
 	github.com/tidwall/sjson v1.1.7
 	go.mongodb.org/mongo-driver v1.6.0
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
