@@ -13,5 +13,5 @@ require (
 	github.com/klauspost/compress v1.11.7 // indirect
 	github.com/mrz1836/go-api-router v0.4.2
 	github.com/tidwall/sjson v1.1.7
-	go.mongodb.org/mongo-driver v1.7.0
+	go.mongodb.org/mongo-driver v1.7.1
 )
