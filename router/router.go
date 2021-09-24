@@ -22,5 +22,5 @@ func Handlers() *httprouter.Router {
 	api.RegisterRoutes(r)
 
 	// Return the router
-	return r.HTTPRouter
+	return r.HTTPRouter.Router
 }
