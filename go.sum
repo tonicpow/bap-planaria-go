@@ -10,8 +10,9 @@ github.com/bitcoinschema/go-b v0.0.12 h1:kBfMwq/mQ1kpMllbmjnFvGS9yvvMdWSyLrwRjLy
 github.com/bitcoinschema/go-b v0.0.12/go.mod h1:joHuJrb0ZVCDapqXMNxiH3bV88Ifwvaph2X31n0c61w=
 github.com/bitcoinschema/go-bap v0.2.6 h1:Lq4MfRmz+70SH7p+GvSvckQfgWl8NC7QFcdOxRBTjbc=
 github.com/bitcoinschema/go-bap v0.2.6/go.mod h1:ZInOf7tBPs4vYiHbbd5DmsMhsVt9NuxqQZXOrRPxmV4=
-github.com/bitcoinschema/go-bitcoin v0.3.18 h1:yZUm+Qen29bcyREdCIdb4I2Mj/zsJRvDZPex95VwHlo=
 github.com/bitcoinschema/go-bitcoin v0.3.18/go.mod h1:qugS0wUE6RKcO05lKnmSyfSwhDbuhztgh3i3UetadDs=
+github.com/bitcoinschema/go-bitcoin v0.3.19 h1:tALB2YidgFrOE3UuSYwyaomeYdEjc/teN8x2LiOscDM=
+github.com/bitcoinschema/go-bitcoin v0.3.19/go.mod h1:BLjz9r9OOhPZEauC5xO1fU6tUkOhpY+gh2L5o4RPQtc=
 github.com/bitcoinschema/go-bmap v0.0.27 h1:z2Ijh23r6wv3jeMNoLRw4aHff8w2hP30kkD3mTuRxEQ=
 github.com/bitcoinschema/go-bmap v0.0.27/go.mod h1:CFgP4HjjUKxM/95uX1EpcVkvghJMWix9+yquBNwpEYM=
 github.com/bitcoinschema/go-bob v0.1.8 h1:6MxvZ9jGmWtiCvRJUMLftj61+DT1pdEwl8WM1G4nG2k=
@@ -141,8 +142,9 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/libsv/go-bt v1.0.0 h1:Ss08pxPwLP6ztm15QEyjLFLX372Z6OKHS5bsqO6PiIs=
 github.com/libsv/go-bt v1.0.0/go.mod h1:AfXoLFYEbY/TvCq/84xTce2xGjPUuC5imokHmcykF2k=
+github.com/libsv/go-bt v1.0.1 h1:47Z50nVjEUbgt+zSTKEHf4JMKDeFDAJbrSEheqKC90w=
+github.com/libsv/go-bt v1.0.1/go.mod h1:AfXoLFYEbY/TvCq/84xTce2xGjPUuC5imokHmcykF2k=
 github.com/markbates/oncer v0.0.0-20181203154359-bf2de49a0be2/go.mod h1:Ld9puTsIW75CHf65OeIOkyKbteujpZVXDpWK6YGZbxE=
 github.com/markbates/safe v1.0.1/go.mod h1:nAqgmRi7cY2nqMc92/bSEeQA+R4OheNU2T1kNSCBdG0=
 github.com/matryer/respond v1.0.1 h1:RSG07jdn32pH46t4UO1TnpnKlR/ayIpEa4aiK2f9k1U=
