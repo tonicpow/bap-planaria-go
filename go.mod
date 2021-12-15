@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/bitcoinschema/go-aip v0.1.7
 	github.com/bitcoinschema/go-bap v0.2.6
-	github.com/bitcoinschema/go-bitcoin v0.3.19
+	github.com/bitcoinschema/go-bitcoin v0.3.20
 	github.com/bitcoinschema/go-bmap v0.0.27
 	github.com/bitcoinschema/go-bob v0.1.8
 	github.com/go-stack/stack v1.8.1 // indirect
